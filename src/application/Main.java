@@ -3,9 +3,14 @@ package application;
 import javafx.application.Application;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
 import javafx.scene.layout.BorderPane;
 
 /*
+ * REPOSITORIO: https://github.com/sousa47/03PSI_JavaFX_BlocoNotas.git
+ * 
  * Bloco de Notas
  * por: David Sousa nº3 2ºGi
  * Bloco notas, como qualquer outro bloco de notas, permite introduzir texto, editar e apagar notas.
@@ -41,7 +46,7 @@ As propriedades são:
  */
 public class Main extends Application {
 	
-	
+	//???
 	public static void main(String[] args) {
 		launch(args);
 	}
@@ -52,12 +57,73 @@ public class Main extends Application {
 	public void start(Stage primaryStage) {
 		try {
 			
-			BorderPane root = new BorderPane();
-			Scene scene = new Scene(root,400,400);
-			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
-			primaryStage.setScene(scene);
-			primaryStage.setTitle("Bloco de Notas");
+			/*------------Fase dos objetos e das layouts secundarias------------*/
+			
+			
+			
+			// --- Menu Criar -------------------------------------------//
+	        Menu menuCriar = new Menu("Criar");
+	        // --SubMenu Nota
+	        MenuItem menuCriarNota = new MenuItem("Nova _Nota");
+	        // --SubMenu Grupo
+	        MenuItem menuCriarGrupo = new MenuItem("Novo _Grupo");
+	        
+	        //--Adicionar todos submenus
+	        menuCriar.getItems().addAll(menuCriarNota,menuCriarGrupo);
+	 
+	        
+	        // --- Menu Editar ------------------------------------------//
+	        Menu menuEditar = new Menu("Editar");
+	        // --SubMenu Nota
+	        MenuItem menuEditarrNota = new MenuItem("Editar _Nota");
+	        // --SubMenu Grupo
+	        MenuItem menuEditarGrupo = new MenuItem("Editar _Grupo");
+	        
+	        //--Adicionar todos submenus
+	        menuEditar.getItems().addAll(menuEditarrNota,menuEditarGrupo);
+	        
+	        
+	        // --- Menu Eliminar ---------------------------------------//
+	        Menu menuEliminar = new Menu("Eliminar");
+	        // --SubMenu Nota
+	        MenuItem menuEliminarNota = new MenuItem("Eliminar _Nota");
+	        // --SubMenu Grupo
+	        MenuItem menuEliminarGrupo = new MenuItem("Eliminar _Grupo");
+	        
+	        //--Adicionar todos submenus
+	        menuCriar.getItems().addAll(menuEliminarNota,menuEliminarGrupo);
+	        
+	        
+	        // --- Menu do Sistema ------------------------------------//
+			MenuBar menuBar = new MenuBar();
+	        //Adiciona os menus ao menuBar
+	        menuBar.getMenus().addAll(menuCriar, menuEditar, menuEliminar);
+	        
+	        
+			
+			
+			/*------------Fase da layout principal------------*/
+			
+			//Pane principal que ira contér tudo do menu principal
+			BorderPane layoutRoot = new BorderPane();		//É criada aqui
+			
+			layoutRoot.setTop(menuBar);
+			
+			
+			/*------------Fase da scene------------*/
+			
+			//Scene do ambiente de trabalho
+			Scene scene = new Scene(layoutRoot,400,400);	//A layout principal é posta na scene
+			
+			
+			/*------------Fase da stage------------*/
+			
+			//É definido alguns parametros da stage principal
+			primaryStage.setScene(scene);			//mete a scene principal
+			primaryStage.setTitle("Bloco de Notas");//mete o titulo
+			//Apresenta a stage
 			primaryStage.show();
+			
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
