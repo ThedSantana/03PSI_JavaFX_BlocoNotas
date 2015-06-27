@@ -20,4 +20,31 @@
 		<nature>org.eclipse.xtext.ui.shared.xtextNature</nature>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>src/richtextfx-demos-fat-0.6.4.jar</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/Desktop/richtextfx-demos-fat-0.6.4.jar</locationURI>
+		</link>
+		<link>
+			<name>src/application/Grupo.java</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/Desktop/Grupo.java</locationURI>
+		</link>
+		<link>
+			<name>src/application/Nota.java</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/Desktop/Nota.java</locationURI>
+		</link>
+		<link>
+			<name>src/application/Topico.java</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/Desktop/Topico.java</locationURI>
+		</link>
+		<link>
+			<name>src/application/Utilizador.java</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/Desktop/Utilizador.java</locationURI>
+		</link>
+	</linkedResources>
 </projectDescription>

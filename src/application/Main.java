@@ -1,12 +1,25 @@
+						/*Package*/
 package application;
-	
+
+
+						/*Imports*/
+import org.fxmisc.richtext.CodeArea;
+import org.fxmisc.richtext.StyleClassedTextArea;
+
 import javafx.application.Application;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 
 /*
  * REPOSITORIO: https://github.com/sousa47/03PSI_JavaFX_BlocoNotas.git
@@ -45,7 +58,7 @@ As propriedades são:
         O processo de criar um nota é só criar a cabeça pois o seu conteúdo fica acessível ao editar,
  */
 public class Main extends Application {
-	
+
 	//???
 	public static void main(String[] args) {
 		launch(args);
@@ -56,6 +69,7 @@ public class Main extends Application {
 	@Override
 	public void start(Stage primaryStage) {
 		try {
+			
 			
 			/*------------Fase dos objetos e das layouts secundarias------------*/
 			
@@ -91,7 +105,7 @@ public class Main extends Application {
 	        MenuItem menuEliminarGrupo = new MenuItem("Eliminar _Grupo");
 	        
 	        //--Adicionar todos submenus
-	        menuCriar.getItems().addAll(menuEliminarNota,menuEliminarGrupo);
+	        menuEliminar.getItems().addAll(menuEliminarNota,menuEliminarGrupo);
 	        
 	        
 	        // --- Menu do Sistema ------------------------------------//
@@ -99,15 +113,46 @@ public class Main extends Application {
 	        //Adiciona os menus ao menuBar
 	        menuBar.getMenus().addAll(menuCriar, menuEditar, menuEliminar);
 	        
+	        //Parte central do ambiente de trabalho
+	        HBox layoutCentral = new HBox();//É um vertical box porque é divido ao meio
 	        
+	        ListView<String> notas = new ListView<>();
+	        //notas.getItems().addAll(new Nota("Teste1"),new Nota("Teste2"),new Nota("Teste3"));
+	        notas.getItems().addAll("Teste1","Teste2","Teste3");				
+	        notas.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE); //Permite selecionar varias notas ao mesmo tempo
+	        
+	        
+	        /* 
+	        TextFlow txt = new TextFlow();
+	        Text text = new Text("teste");
+	        */
+	        
+	        //Caixa de texto
+	        /*
+	         * Importada de um ficheiro externo, pois os objetos nativos do javaFX não
+	         * tem esse tipo de node, serve para editar as notas.
+	         * Provém do ficheiro richtextfx-demos-fat-0.6.4.jar do site https://github.com/TomasMikula/RichTextFX#rich-text-editor
+	         */
+	        StyleClassedTextArea area = new StyleClassedTextArea(); 		//Cria um rich text box que permite ter formatações de texto
+	        area.prefWidthProperty().bind(layoutCentral.widthProperty());	//alinha com o tamanho maximo da janela
+	        
+	        layoutCentral.getChildren().add(notas);		//mete a lista de notas em primeiro lugar (esquerda)
+	        layoutCentral.getChildren().add(area);		//mete a caixxa de texto para editar em segundo (direita)
 			
+	        
+	        
+	        
 			
 			/*------------Fase da layout principal------------*/
 			
 			//Pane principal que ira contér tudo do menu principal
 			BorderPane layoutRoot = new BorderPane();		//É criada aqui
 			
-			layoutRoot.setTop(menuBar);
+			layoutRoot.setTop(menuBar);				//adiciona o menu
+			layoutRoot.setCenter(layoutCentral);	//adiciona o conteudo do meio
+			
+			
+			
 			
 			
 			/*------------Fase da scene------------*/
@@ -116,18 +161,32 @@ public class Main extends Application {
 			Scene scene = new Scene(layoutRoot,400,400);	//A layout principal é posta na scene
 			
 			
+			
+			
+			
 			/*------------Fase da stage------------*/
 			
 			//É definido alguns parametros da stage principal
 			primaryStage.setScene(scene);			//mete a scene principal
 			primaryStage.setTitle("Bloco de Notas");//mete o titulo
+			
+			//Dimensões da janela
+			primaryStage.setWidth(650);		//tamanho inicial da largura
+			primaryStage.setHeight(350);	//tamanho inicial da altura
+			primaryStage.setMinWidth(400);	//define o tamanho minimo de largura
+			primaryStage.setMinHeight(250);	//define o tamanho minimo de altura
+			
 			//Apresenta a stage
 			primaryStage.show();
+			
+			
+			
 			
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
-	}
+		
+	}//Fim metodo start
 	
 	
-}
+}//Fim class main
