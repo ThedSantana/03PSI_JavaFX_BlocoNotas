@@ -3,23 +3,18 @@ package application;
 
 
 						/*Imports*/
-import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.StyleClassedTextArea;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextFlow;
 
 /*
  * REPOSITORIO: https://github.com/sousa47/03PSI_JavaFX_BlocoNotas.git
@@ -79,6 +74,12 @@ public class Main extends Application {
 	        Menu menuCriar = new Menu("Criar");
 	        // --SubMenu Nota
 	        MenuItem menuCriarNota = new MenuItem("Nova _Nota");
+	        
+	        //Dá vida ao botao
+	        menuCriarNota.setOnAction(e -> {
+	        	
+	        });
+	        
 	        // --SubMenu Grupo
 	        MenuItem menuCriarGrupo = new MenuItem("Novo _Grupo");
 	        
@@ -178,8 +179,6 @@ public class Main extends Application {
 			
 			//Apresenta a stage
 			primaryStage.show();
-			
-			
 			
 			
 		} catch(Exception e) {
