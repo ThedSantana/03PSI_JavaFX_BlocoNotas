@@ -3,18 +3,31 @@ package application;
 
 
 						/*Imports*/
+import java.util.ArrayList;
+import java.util.List;
+
 import org.fxmisc.richtext.StyleClassedTextArea;
 
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ColorPicker;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.util.Callback;
 
 /*
  * REPOSITORIO: https://github.com/sousa47/03PSI_JavaFX_BlocoNotas.git
@@ -54,6 +67,14 @@ As propriedades são:
  */
 public class Main extends Application {
 
+	//O menu bar é comum a todas as funcoes e scenes
+	MenuBar menuBar; //Faz o menu de classe
+	
+	//Faz as notas serem acessiveis a toda a classe
+	ListView<Nota> notas;		//list view que apresenta as notas, e serve para saber que nota o utilizador que utilizar
+	List<Nota> myList = new ArrayList<>();	//Guarda as notas numa lista 
+	ObservableList<Nota> myObservableList;	//utiliza a lista de notas que depois é organizada pela listView para ser apresentada
+	
 	//???
 	public static void main(String[] args) {
 		launch(args);
@@ -77,6 +98,67 @@ public class Main extends Application {
 	        
 	        //Dá vida ao botao
 	        menuCriarNota.setOnAction(e -> {
+	        	
+	        	//Label criar nota
+	        	Label txtCriaNota = new Label("Nova Nota");
+	        	txtCriaNota.setAlignment(Pos.CENTER); //alinha ao centro TODO: Ver porque não alinha
+	        	
+	        	//Recebe o nome da nota
+	        	TextField txtNome = new TextField();
+	        	txtNome.setText("Nova Nota"); //Mete valor por defeito
+	        	txtNome.positionCaret(0);	  //Coloca a posição da seleção a partir do ponto 0 (antes da primeira letra)
+	        	txtNome.selectAll();		  //Seleciona tudo a partir da posicao 0 ate ao fim
+	        	
+	        	//Cria um caixa de introdução de cor
+	        	ColorPicker cor = new ColorPicker();
+	        	
+	        	//ComboBox grupo = new ComboBox();
+	        	
+	        	//Cria a nota
+	        	Button criar = new Button("Criar");
+	        	
+	        	//layout que vai conter todos os elementos de criação da nota
+	        	VBox layoutForm = new VBox(10);
+	        	
+	        	//Mete a cor e o nome um ao lado do outro
+	        	HBox layoutNomeCor = new HBox();
+	        	layoutNomeCor.getChildren().addAll(txtNome,cor);
+	        	
+	        	//mete os elementos todos
+	        	layoutForm.getChildren().add(txtCriaNota);
+	        	layoutForm.getChildren().add(layoutNomeCor);
+	        	layoutForm.getChildren().add(criar);
+
+	        	//Cria a ação do botão criar
+	        	criar.setOnAction(a->{
+	        		//nota.add(new Nota(txtNome.getText()));
+	        		//notas.getItems().add(txtNome.getText());
+	        		//notas.getItems().add(new Nota(txtNome.getText()));
+	        		myList.add(new Nota(txtNome.getText()));
+	        		myObservableList = FXCollections.observableList(myList);
+	    	        notas.setItems(myObservableList);
+	        	});
+	        	
+	        	//Horizontal layout
+	        	HBox layoutHorizontal = new HBox();
+	        	
+	        	layoutHorizontal.getChildren().add(notas);
+	        	layoutHorizontal.getChildren().add(layoutForm);
+	        	
+	        	//Cria a layout para a scene
+	        	BorderPane layoutCriarNota = new BorderPane();			
+	        	
+	        	//Coloca o menu bar no topo e a layout horizontal
+	        	layoutCriarNota.setTop(menuBar);
+	        	layoutCriarNota.setCenter(layoutHorizontal);
+	        	
+	        	//Cria a scene nova para alterar na primaryStage
+	        	Scene criarNota = new Scene(layoutCriarNota,100,100);
+	        	
+	        	//Altera e apresenta a nova scene
+	        	txtNome.requestFocus();
+	        	primaryStage.setScene(criarNota);
+	        	primaryStage.show();
 	        	
 	        });
 	        
@@ -110,18 +192,89 @@ public class Main extends Application {
 	        
 	        
 	        // --- Menu do Sistema ------------------------------------//
-			MenuBar menuBar = new MenuBar();
+			menuBar = new MenuBar();
 	        //Adiciona os menus ao menuBar
 	        menuBar.getMenus().addAll(menuCriar, menuEditar, menuEliminar);
 	        
 	        //Parte central do ambiente de trabalho
 	        HBox layoutCentral = new HBox();//É um vertical box porque é divido ao meio
 	        
-	        ListView<String> notas = new ListView<>();
-	        //notas.getItems().addAll(new Nota("Teste1"),new Nota("Teste2"),new Nota("Teste3"));
-	        notas.getItems().addAll("Teste1","Teste2","Teste3");				
+	        notas = new ListView<>();
+	        myObservableList = FXCollections.observableList(myList);
+	        notas.setItems(myObservableList);
+	         
+	        notas.setCellFactory(new Callback<ListView<Nota>, ListCell<Nota>>(){
+	 
+	            @Override
+	            public ListCell<Nota> call(ListView<Nota> p) {
+	                 
+	                ListCell<Nota> cell = new ListCell<Nota>(){
+	 
+	                    @Override
+	                    protected void updateItem(Nota t, boolean bln) {
+	                        super.updateItem(t, bln);
+	                        if (t != null) {
+	                            setText(t.getTitulo());
+	                        }
+	                    }
+	 
+	                };
+	                 
+	                return cell;
+	            }
+	        });
+	        //notas.getItems().addAll(new Nota("Teste1"),new Nota("Teste2"),new Nota("Teste3"));				
 	        notas.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE); //Permite selecionar varias notas ao mesmo tempo
 	        
+	        //Evento de selecionar elemento
+	        notas.getSelectionModel().selectedItemProperty().addListener(e->{
+	        	
+	        	//Cria uma copia do layoutRoot para o criar
+	        	BorderPane layoutRootNota = new BorderPane();
+	        	//Mete o menu bar(comum para todos)
+	        	layoutRootNota.setTop(menuBar);
+	        	
+	        	//Cria um layoutCentral tambem uma copia do menu principal
+	        	HBox layoutCentralNota = new HBox();//É um vertical box porque é divido ao meio
+	        	//mete a listview que é comum na layout
+	        	layoutCentralNota.getChildren().add(notas);
+	        	//Cria um cai0xa de texto
+	        	StyleClassedTextArea area = new StyleClassedTextArea();
+	        	area.prefWidthProperty().bind(layoutCentral.widthProperty());	//ajusta o espaco
+	        	
+	        	//Cria uma copia da posicao selecionada
+	        	Nota n = myList.get(notas.getSelectionModel().getSelectedIndex());
+	        	//Da copia feita é posto dentro ca caixa de texto
+	        	area.appendText(n.getConteudo());
+	        	
+	        	//define o evento on key release, ou seja, depois de escrever o caracter é guardado, a cada caracter
+	        	area.setOnKeyReleased(b->{
+	        		n.setConteudo(area.getText());	//mete o valor da caixa no obj nota
+	        		
+	        		try//tenta executar
+	        		{
+	        			myList.set(notas.getSelectionModel().getSelectedIndex(), n);//atualiza na lista
+	        		}
+	        		catch(java.lang.ArrayIndexOutOfBoundsException naoSelecionado)//Caso nao esteja nada selecionado
+	        		{
+	        			Utils.alertBox("Selecione uma nota primeiro antes de alterar!");
+	        		}
+	        	});
+	        	
+	        	//notas.getSelectionModel().getSelectedItem().se
+	        	
+	        	//mete o elemento area na layout do centro
+	        	layoutCentralNota.getChildren().add(area);
+	        	//define o centro da border pane com a layout anterior
+	        	layoutRootNota.setCenter(layoutCentralNota);
+	        	
+	        	//Cria uma nova scene
+	        	Scene editarNota = new Scene(layoutRootNota,100,100);
+	        	
+	        	//Apresenta a nov a scene
+	        	primaryStage.setScene(editarNota);
+	        	primaryStage.show();
+	        });
 	        
 	        /* 
 	        TextFlow txt = new TextFlow();
