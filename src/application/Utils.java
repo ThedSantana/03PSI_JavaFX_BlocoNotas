@@ -6,14 +6,15 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 public class Utils {
 	
 	//Constantes de dimensao
-	final static int MIN_WIDTH_SIZE = 300;
-	final static int MAX_WIDTH_SIZE = 300;
+	final static int MIN_WIDTH_SIZE = 350;
+	final static int MAX_WIDTH_SIZE = 350;
 	final static int MIN_HEIGHT_SIZE = 150;
 	final static int MAX_HEIGHT_SIZE = 150;
 	
@@ -133,5 +134,63 @@ public class Utils {
 		//Devolve a opção escolhida pelo utilizador
 		return resposta;
 	}
-
+	
+	/*-----------------------------------------------------------------------------
+	 * ConverterCor
+	 * Serve para converter objetos do tipo cor para string com o formato hexadeciamal
+	 * preparado para o css e vice versa
+	 * ----------------------------------------------------------------------------
+	 */
+	public static String colorToString(Color c)
+	{
+		String cor = c.toString();//converte para string
+		
+		cor = cor.substring(2,8);//Corta o que nao interessa
+		cor = "#" + cor; //mete a hast tagzinha
+		
+		return cor; //Devolve a cor em string
+	}
+	
+	public static Color StringToColor(String s)
+	{
+		String r, g, b;//parte em strings os codigos hexadecimal por cores
+		double dr = 0, dg = 0, db = 0;//retem os valores das strings entre 0 e 1
+		Color cor = new Color(0,0,0,1);//branco
+		
+		//exemplo de formato: #ff129D
+		r = s.substring(1, 3);//ff
+		g = s.substring(3, 5);//12
+		b = s.substring(5, 7);//9D
+		
+		try//Converte de hexadecimal para long e depois para double e por fim é dividido por 255 para conter o formato de entre o e 1
+		{
+			dr = ((double)(Long.parseLong(r, 16))/255);
+			dg = ((double)(Long.parseLong(g, 16))/255);
+			db = ((double)(Long.parseLong(b, 16))/255);
+		}
+		catch(java.lang.NumberFormatException formato)//caso a string tenha lixo ou coisas desnecessarias
+		{
+			alertBox("A cor tem caracteres invalidos!\nFoi posta a branco!");
+			System.out.println("r = " + r +" " +"g = " + g +" " +"b = " + b +" " + "dr = " + dr +" " +"dg = " + dg +" " +"db = " + db);
+		}
+		
+		/*Parameters:
+		 * red - red component ranging from 0 to 1
+		 * green - green component ranging from 0 to 1
+		 * blue - blue component ranging from 0 to 1
+		 * opacity - opacity ranging from 0 to 1
+		 * */
+		try
+		{
+			//alertBox(""+dr+ " "+dg+" "+db);
+			cor = new Color(dr, dg, db, 1);
+		}
+		catch(java.lang.IllegalArgumentException valorInvalido) //tem de pertencer entre 0 e 1
+		{
+			alertBox("A cor tem valores invalidos!\nFoi posta a branco!");
+			System.out.println("r = " + r +" " +"g = " + g +" " +"b = " + b +" " + "dr = " + dr +" " +"dg = " + dg +" " +"db = " + db);
+		}
+		
+		return cor; //Devolve a cor em Color
+	}
 }

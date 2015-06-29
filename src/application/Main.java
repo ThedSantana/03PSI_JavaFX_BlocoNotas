@@ -67,6 +67,9 @@ As propriedades são:
  */
 public class Main extends Application {
 
+	//Selecionado
+	int selecionadoIndex = 0;//guarda a posicao em que foi clicada, serve essencialmente no alterar 
+	
 	//O menu bar é comum a todas as funcoes e scenes
 	MenuBar menuBar; //Faz o menu de classe
 	
@@ -74,6 +77,9 @@ public class Main extends Application {
 	ListView<Nota> notas;		//list view que apresenta as notas, e serve para saber que nota o utilizador que utilizar
 	List<Nota> myList = new ArrayList<>();	//Guarda as notas numa lista 
 	ObservableList<Nota> myObservableList;	//utiliza a lista de notas que depois é organizada pela listView para ser apresentada
+	
+	//Nota para alterar
+	Nota alterar;
 	
 	//???
 	public static void main(String[] args) {
@@ -96,8 +102,7 @@ public class Main extends Application {
 	        // --SubMenu Nota
 	        MenuItem menuCriarNota = new MenuItem("Nova _Nota");
 	        
-	        //Dá vida ao botao
-	        menuCriarNota.setOnAction(e -> {
+	        menuCriarNota.setOnAction(e -> {//Dá vida ao botao
 	        	
 	        	//Label criar nota
 	        	Label txtCriaNota = new Label("Nova Nota");
@@ -134,9 +139,10 @@ public class Main extends Application {
 	        		//nota.add(new Nota(txtNome.getText()));
 	        		//notas.getItems().add(txtNome.getText());
 	        		//notas.getItems().add(new Nota(txtNome.getText()));
-	        		myList.add(new Nota(txtNome.getText()));
+	        		myList.add(new Nota(txtNome.getText(),Utils.colorToString(cor.getValue())));
 	        		myObservableList = FXCollections.observableList(myList);
 	    	        notas.setItems(myObservableList);
+	    	        //Utils.alertBox(Utils.colorToString(cor.getValue()));
 	        	});
 	        	
 	        	//Horizontal layout
@@ -156,7 +162,9 @@ public class Main extends Application {
 	        	Scene criarNota = new Scene(layoutCriarNota,100,100);
 	        	
 	        	//Altera e apresenta a nova scene
-	        	txtNome.requestFocus();
+	        	txtNome.requestFocus();//foca-se no nome, visto que é normal de mudar
+	        	notas.getSelectionModel().clearSelection();//limpa a seleção
+	        	
 	        	primaryStage.setScene(criarNota);
 	        	primaryStage.show();
 	        	
@@ -172,18 +180,189 @@ public class Main extends Application {
 	        // --- Menu Editar ------------------------------------------//
 	        Menu menuEditar = new Menu("Editar");
 	        // --SubMenu Nota
-	        MenuItem menuEditarrNota = new MenuItem("Editar _Nota");
+	        MenuItem menuEditarNota = new MenuItem("Editar _Nota");
+	        
+	        menuEditarNota.setOnAction(EeditarNota->{ //Mostra a interface de editar
+	        	
+	        	boolean criarInterface = true;//O sistema evita de criar um interface se não houver notas criadas ou não selecionadas
+	        	alterar = new Nota("Erro ao abrir nota!"); //Armazena a informação da nota que queremos alterar
+	        	selecionadoIndex = notas.getSelectionModel().getSelectedIndex();//forma mais conviniente de utilizar o index
+	        	
+	        	//Comeca por buscar a nota selecionada
+	        	try
+	        	{
+	        		alterar = myList.get(selecionadoIndex);
+	        	}
+	        	catch(java.lang.ArrayIndexOutOfBoundsException naoSelecionado) //Caso nao esteja nenhuma selecionada
+	        	{
+	        		if(myList.size() == 0) //Se nao selecionou porque nao havia elementos criados entao devolve a mensagem devida
+	        		{
+	        			Utils.alertBox("Crie uma nota primeiro!");  
+	        		}
+	        		else	//senao pede para selecionar
+	        		{
+	   	        		Utils.alertBox("Selecione primeiro a nota que quer alterar!");     			
+	        		}
+
+	        		criarInterface = false;
+	        	}
+	        	
+	        	if(criarInterface)//se tiver tudo ok
+	        	{
+		        	//Label criar nota
+		        	Label txtEditarNota = new Label("Editar Nota");
+		        	txtEditarNota.setAlignment(Pos.CENTER); //alinha ao centro TODO: Ver porque não alinha
+		        	
+		        	//Recebe o nome da nota
+		        	TextField txtNome = new TextField();
+		        	txtNome.setText(alterar.getTitulo()); //Mete valor por defeito
+		        	txtNome.positionCaret(0);	  //Coloca a posição da seleção a partir do ponto 0 (antes da primeira letra)
+		        	txtNome.selectAll();		  //Seleciona tudo a partir da posicao 0 ate ao fim
+		        	
+		        	//Cria um caixa de introdução de cor
+		        	ColorPicker cor = new ColorPicker();
+		        	cor.setValue(Utils.StringToColor(alterar.getCor()));
+		        	
+		        	//ComboBox grupo = new ComboBox();
+		        	
+		        	//Cria a nota
+		        	Button editar = new Button("Alterar");
+		        	
+		        	//Cria um caixa de texto
+		        	StyleClassedTextArea area = new StyleClassedTextArea();
+		        	area.appendText(alterar.getConteudo());
+		        	
+		        	//layout que vai conter todos os elementos de criação da nota
+		        	VBox layoutForm = new VBox(10);
+		        	
+		        	//Mete a cor e o nome um ao lado do outro
+		        	HBox layoutNomeCor = new HBox();
+		        	layoutNomeCor.getChildren().addAll(txtNome,cor);
+		        	
+		        	//mete os elementos todos
+		        	layoutForm.getChildren().add(txtEditarNota);
+		        	layoutForm.getChildren().add(layoutNomeCor);
+		        	layoutForm.getChildren().add(editar);
+	
+		        	//Cria a ação do botão criar
+		        	editar.setOnAction(a->{
+		        		
+		        		//Mudar conteudo
+		        		alterar.setTitulo(txtNome.getText());//altera o nome
+		        		alterar.setCor(Utils.colorToString(cor.getValue()));//altera a cor
+		        		alterar.setConteudo(area.getText());//altera o conteudo
+		        		
+		        		try
+		        		{
+		        		//Utils.alertBox(""+notas.getSelectionModel().getSelectedIndex());
+		        		//Se for clicado na caixa de alterar a cor, automaticamente é perdido o focus,
+		        		//logo é gerado um erro ao tentar colocar no indice de algo que não esta selecionado
+		        		//gerando o erro: java.lang.ArrayIndexOutOfBoundsException
+		        			myList.set(selecionadoIndex, alterar);// muda na lista o obj
+		        		}
+		        		catch(java.lang.ArrayIndexOutOfBoundsException naoSelecionado)
+		        		{
+		        			Utils.alertBox("Não foi possivel guardar, por favor abra de novo a nota!");
+		        		}
+		        		myObservableList = FXCollections.observableList(myList);//atualiza a observable list
+		        		notas.setItems(null); //Serve para enganar o sistema, porque as notas so dao refresh quando é adicionado ou removido
+		    	        notas.setItems(myObservableList);//mete a observable list
+		    	        
+		    	        //Utils.alertBox(txtNome.getText() + notas.getSelectionModel().getSelectedIndex());
+		        	});
+		        	
+		        	//Horizontal layout
+		        	HBox layoutHorizontal = new HBox();
+		        	
+		        	layoutHorizontal.getChildren().add(layoutForm);
+		        	layoutHorizontal.getChildren().add(area);
+		        	layoutForm.prefWidthProperty().bind(layoutHorizontal.widthProperty());	//ajusta o espaco
+		        	area.prefWidthProperty().bind(layoutHorizontal.widthProperty());	//ajusta o espaco
+		        	
+		        	//Cria a layout para a scene
+		        	BorderPane layoutEditarNota = new BorderPane();			
+		        	
+		        	//Coloca o menu bar no topo e a layout horizontal
+		        	layoutEditarNota.setTop(menuBar);
+		        	layoutEditarNota.setCenter(layoutHorizontal);
+		        	
+		        	//Cria a scene nova para alterar na primaryStage
+		        	Scene editarNota = new Scene(layoutEditarNota,100,100);
+		        	
+		        	//Altera e apresenta a nova scene
+		        	txtNome.requestFocus();
+		        	primaryStage.setScene(editarNota);
+		        	primaryStage.show();
+	        	}
+	        });
+	        
 	        // --SubMenu Grupo
 	        MenuItem menuEditarGrupo = new MenuItem("Editar _Grupo");
 	        
 	        //--Adicionar todos submenus
-	        menuEditar.getItems().addAll(menuEditarrNota,menuEditarGrupo);
+	        menuEditar.getItems().addAll(menuEditarNota,menuEditarGrupo);
 	        
 	        
 	        // --- Menu Eliminar ---------------------------------------//
 	        Menu menuEliminar = new Menu("Eliminar");
 	        // --SubMenu Nota
 	        MenuItem menuEliminarNota = new MenuItem("Eliminar _Nota");
+	        
+	        menuEliminarNota.setOnAction(EeliminarNota->{//coisas de eliminar
+	        	
+	        	Nota eliminar = new Nota("erro ao abrir!"); //obter obj Nota
+	        	boolean resposta = false; 	//recebe os valores introduzidos pelo utilizador
+	        								//é tambem utilizado de outra forma inicialmente, verifica se pode apagar ou nao a nota
+	        	selecionadoIndex = notas.getSelectionModel().getSelectedIndex();//obter indice na lista
+	        	
+	        	try
+        		{
+	        		eliminar = myList.get(selecionadoIndex);//recebe a nota
+	        		resposta = true;
+        		}
+        		catch(java.lang.ArrayIndexOutOfBoundsException naoSelecionado)
+        		{
+        			if(myList.size() == 0) //Se nao selecionou porque nao havia elementos criados entao devolve a mensagem devida
+	        		{
+	        			Utils.alertBox("Não existem notas para eliminar!");  
+	        		}
+	        		else	//senao pede para selecionar
+	        		{
+	        			Utils.alertBox("Por favor selecione a nota primeiro!");    			
+	        		}
+        		}
+	        
+	        	if(resposta)//Verifica se esta tudo ok
+	        	{
+	        		
+		        	resposta = Utils.confirmationBox("Deseja eliminar permanentemente a nota\n" + eliminar.getTitulo() +"?");//Pergunta se quer realmente apagar
+		        	
+		        	if(resposta) //Se sim, quiser apagar
+		        	{
+		        		//pergunta se quer receber uma copia no email
+		        		resposta = Utils.confirmationBox("Deseja receber uma copia no email?");
+		        		
+		        		if(resposta)//se sim, se quiser receber um email
+		        		{
+		        			//manda email ao utilizador
+		        			//TODO: fazer support com o email
+		        		}
+		        		
+		        		//Carimba como apagado
+		        		eliminar.apagarNota();
+		        		//TODO: fazer o carimbo funcionar
+		        		myList.remove(selecionadoIndex);//remove da lista
+		        		
+		        		//Atualiza a lista
+		        		//myList.set(selecionadoIndex, alterar);// muda na lista o obj
+		        		myObservableList = FXCollections.observableList(myList);//atualiza a observable list
+		        		notas.setItems(null); //Serve para enganar o sistema, porque as notas so dao refresh quando é adicionado ou removido
+		    	        notas.setItems(myObservableList);//mete a observable list
+		        	}
+		        	
+	        	}
+	        	
+	        });
 	        // --SubMenu Grupo
 	        MenuItem menuEliminarGrupo = new MenuItem("Eliminar _Grupo");
 	        
@@ -203,6 +382,7 @@ public class Main extends Application {
 	        myObservableList = FXCollections.observableList(myList);
 	        notas.setItems(myObservableList);
 	         
+	        //Muda a forma de apresentar os dados na list view, utiliza o obj Nota em vez de String
 	        notas.setCellFactory(new Callback<ListView<Nota>, ListCell<Nota>>(){
 	 
 	            @Override
@@ -214,15 +394,22 @@ public class Main extends Application {
 	                    protected void updateItem(Nota t, boolean bln) {
 	                        super.updateItem(t, bln);
 	                        if (t != null) {
-	                            setText(t.getTitulo());
+	                        	if(!t.getCarimboApagado())//Verifica se a nota esta carimbada como apagada
+	                        	{
+	                        		setText(t.getTitulo());
+	                        		//cell.setStyle("-fx-background-color: "+t.getCor()+";");
+	                        	}
+
 	                        }
 	                    }
 	 
 	                };
-	                 
+	                
 	                return cell;
 	            }
 	        });
+	        
+	       
 	        //notas.getItems().addAll(new Nota("Teste1"),new Nota("Teste2"),new Nota("Teste3"));				
 	        notas.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE); //Permite selecionar varias notas ao mesmo tempo
 	        
@@ -238,7 +425,7 @@ public class Main extends Application {
 	        	HBox layoutCentralNota = new HBox();//É um vertical box porque é divido ao meio
 	        	//mete a listview que é comum na layout
 	        	layoutCentralNota.getChildren().add(notas);
-	        	//Cria um cai0xa de texto
+	        	//Cria um caixa de texto
 	        	StyleClassedTextArea area = new StyleClassedTextArea();
 	        	area.prefWidthProperty().bind(layoutCentral.widthProperty());	//ajusta o espaco
 	        	
