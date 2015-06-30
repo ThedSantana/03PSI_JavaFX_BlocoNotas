@@ -80,10 +80,16 @@ public class Main extends Application {
 	MenuBar menuBar; //Faz o menu de classe
 	
 	//Faz as notas serem acessiveis a toda a classe
-	ListView<Nota> notas;		//list view que apresenta as notas, e serve para saber que nota o utilizador que utilizar
+	ListView<Nota> notas;		//list view que apresenta as notas, e serve para saber que nota o utilizador quer utilizar
 	List<Nota> myList = new ArrayList<>();	//Guarda as notas numa lista 
 	ObservableList<Nota> myObservableList;	//utiliza a lista de notas que depois é organizada pela listView para ser apresentada
 	
+	//Faz os grupos serem acessiveis a toda a classe
+	ListView<Grupo> grupos;		//list view que apresenta os grupos, e serve para saber que grupo o utilizador quer utilizar
+	List<Grupo> myListGrupos = new ArrayList<>();	//Guarda os grupos numa lista 
+	ObservableList<Grupo> myObservableListGrupos;	//utiliza a lista de grupos que depois é organizada pela listView para ser apresentada
+	
+		
 	//Nota para alterar
 	Nota alterar;
 	String temp = ""; //armazena valores temporarios como as notas
@@ -98,7 +104,6 @@ public class Main extends Application {
 	@Override
 	public void start(Stage primaryStage) {
 		try {
-			
 			
 			/*------------Fase dos objetos e das layouts secundarias------------*/
 			
@@ -188,6 +193,71 @@ public class Main extends Application {
 	        // --SubMenu Grupo
 	        MenuItem menuCriarGrupo = new MenuItem("Novo _Grupo");
 	        
+	        menuCriarGrupo.setOnAction(EcriarGrupo -> {//Dá vida ao botao
+	        	
+	        	//Label criar grupo
+	        	Label txtCriaGrupo = new Label("Novo Grupo");
+	        	txtCriaGrupo.setAlignment(Pos.CENTER); //alinha ao centro TODO: Ver porque não alinha
+	        	
+	        	//Recebe o nome do grupo
+	        	TextField txtNome = new TextField();
+	        	txtNome.setText("Novo Grupo"); //Mete valor por defeito
+	        	txtNome.positionCaret(0);	  //Coloca a posição da seleção a partir do ponto 0 (antes da primeira letra)
+	        	txtNome.selectAll();		  //Seleciona tudo a partir da posicao 0 ate ao fim
+	        	
+	        	//Cria um caixa de introdução de cor
+	        	ColorPicker cor = new ColorPicker();
+	        	
+	        	//Cria a nota
+	        	Button criar = new Button("Criar");
+	        	
+	        	//layout que vai conter todos os elementos de criação da nota
+	        	VBox layoutForm = new VBox(10);
+	        	
+	        	//Mete a cor e o nome um ao lado do outro
+	        	HBox layoutNomeCor = new HBox();
+	        	layoutNomeCor.getChildren().addAll(txtNome,cor);
+	        	
+	        	//mete os elementos todos
+	        	layoutForm.getChildren().add(txtCriaGrupo);
+	        	layoutForm.getChildren().add(layoutNomeCor);
+	        	layoutForm.getChildren().add(criar);
+
+	        	//Cria a ação do botão criar
+	        	criar.setOnAction(a->{	        		
+	        		//cria um grupo
+	        		Grupo criarGrupo = new Grupo(txtNome.getText(),Utils.colorToString(cor.getValue()));
+	        		
+	        		myListGrupos.add(criarGrupo);
+	        		myObservableListGrupos = FXCollections.observableList(myListGrupos);
+	    	        grupos.setItems(myObservableListGrupos);
+	    	        //Utils.alertBox(Utils.colorToString(cor.getValue()));
+	        	});
+	        	
+	        	//Horizontal layout
+	        	HBox layoutHorizontal = new HBox();
+	        	
+	        	layoutHorizontal.getChildren().add(grupos);
+	        	layoutHorizontal.getChildren().add(layoutForm);
+	        	
+	        	//Cria a layout para a scene
+	        	BorderPane layoutCriarGrupo = new BorderPane();			
+	        	
+	        	//Coloca o menu bar no topo e a layout horizontal
+	        	layoutCriarGrupo.setTop(menuBar);
+	        	layoutCriarGrupo.setCenter(layoutHorizontal);
+	        	
+	        	//Cria a scene nova para alterar na primaryStage
+	        	Scene criarGrupo = new Scene(layoutCriarGrupo,100,100);
+	        	
+	        	//Altera e apresenta a nova scene
+	        	txtNome.requestFocus();//foca-se no nome, visto que é normal de mudar
+	        	//notas.getSelectionModel().clearSelection();//limpa a seleção
+	        	
+	        	primaryStage.setScene(criarGrupo);
+	        	primaryStage.show();
+	        	
+	        });
 	        //--Adicionar todos submenus
 	        menuCriar.getItems().addAll(menuCriarNota,menuCriarGrupo);
 	 
@@ -402,10 +472,19 @@ public class Main extends Application {
 	        //Parte central do ambiente de trabalho
 	        HBox layoutCentral = new HBox();//É um vertical box porque é divido ao meio
 	        
+	        
+	        //--------------
+	        //	NOTAS
+	        //--------------
+	        
 	        notas = new ListView<>();
 	        myObservableList = FXCollections.observableList(myList);
 	        notas.setItems(myObservableList);
 	         
+
+	        //notas.getItems().addAll(new Nota("Teste1"),new Nota("Teste2"),new Nota("Teste3"));				
+	        notas.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE); //Permite selecionar varias notas ao mesmo tempo
+	        
 	        //Muda a forma de apresentar os dados na list view, utiliza o obj Nota em vez de String
 	        notas.setCellFactory(new Callback<ListView<Nota>, ListCell<Nota>>(){
 	 
@@ -420,57 +499,57 @@ public class Main extends Application {
 	                        if (t != null) {
 	                        	//if(!t.getCarimboApagado())//Verifica se a nota esta carimbada como apagada
 	                        	//{
-	                        		//setText(t.getTitulo());
-	                        		//cell.setStyle("-fx-background-color: "+t.getCor()+";");
-	                        		Label lb = new Label(t.getTitulo());
-	                        		HBox h = new HBox();
-	                        		
-	                        		//Opcao 1, muda o background e faz o contraste da letra
-	                        		//h.setStyle("-fx-background-color: "+t.getCor()+";");
-	                        		//http://www.w3.org/WAI/ER/WD-AERT/#color-contrast
-	                        		/*
-	                        		 * Color brightness is determined by the following formula:
-									 *((Red value X 299) + (Green value X 587) + (Blue value X 114)) / 1000
-									 * Note: This algorithm is taken from a formula for converting RGB values to YIQ values. This brightness value gives a perceived brightness for a color.
-									 *
-									 * Color difference is determined by the following formula:
-								     * (maximum (Red value 1, Red value 2) - minimum (Red value 1, Red value 2)) + (maximum (Green value 1, Green value 2) - minimum (Green value 1, Green value 2)) + (maximum (Blue value 1, Blue value 2) - minimum (Blue value 1, Blue value 2))
-									 *
-									 * The rage for color brightness difference is 125. The range for color difference is 500.
-	                        		 */
-	                        		Color c = Utils.StringToColor(t.getCor());
-	                        		
-	                        		/*
-	                        		if(c.getBrightness() > 0.5)
-	                        		{
-	                        			lb.setStyle("-fx-text-fill: black");
-	                        		}
-	                        		else
-	                        		{
-	                        			//lb.setStyle("-fx-text-fill: white");
-	                        			lb.setStyle("-fx-text-fill: "+t.getCor()+";");
-	                        		}*/
-	                        		
-	                        		
-	                        		
-	                        		//bolinha
-	                        		Canvas canvas = new Canvas(300, 250);//Cria um canvas
-	                        		canvas.heightProperty().set(20);	//mete a altura a 20px
-	                        		canvas.widthProperty().set(20);		//mete a altura a 20px
-	                        		
-	                                GraphicsContext gc = canvas.getGraphicsContext2D();//desenha os graficos
-	                                gc.setFill(c);	//define a cor dos metodos fill
-	                                gc.fillOval(5, 5, 10, 10);//desenha uma bola cheia na posicao x y e altura  e largura w,h
-	                                if(c.getBrightness() > 0.65)
-	                        		{
-	                        			gc.setStroke(Color.BLACK);
-	                        			gc.strokeOval(5, 5, 10, 10);
-	                        		}
-	                        		h.getChildren().add(lb);
-	                        		h.getChildren().add(canvas);
-	                        		
-	                        		//mete os graficos
-	                        		setGraphic(h);	//recebe uma node
+                        		//setText(t.getTitulo());
+                        		//cell.setStyle("-fx-background-color: "+t.getCor()+";");
+                        		Label lb = new Label(t.getTitulo());
+                        		HBox h = new HBox();
+                        		
+                        		//Opcao 1, muda o background e faz o contraste da letra
+                        		//h.setStyle("-fx-background-color: "+t.getCor()+";");
+                        		//http://www.w3.org/WAI/ER/WD-AERT/#color-contrast
+                        		/*
+                        		 * Color brightness is determined by the following formula:
+								 *((Red value X 299) + (Green value X 587) + (Blue value X 114)) / 1000
+								 * Note: This algorithm is taken from a formula for converting RGB values to YIQ values. This brightness value gives a perceived brightness for a color.
+								 *
+								 * Color difference is determined by the following formula:
+							     * (maximum (Red value 1, Red value 2) - minimum (Red value 1, Red value 2)) + (maximum (Green value 1, Green value 2) - minimum (Green value 1, Green value 2)) + (maximum (Blue value 1, Blue value 2) - minimum (Blue value 1, Blue value 2))
+								 *
+								 * The rage for color brightness difference is 125. The range for color difference is 500.
+                        		 */
+                        		Color c = Utils.StringToColor(t.getCor());
+                        		
+                        		/*
+                        		if(c.getBrightness() > 0.5)
+                        		{
+                        			lb.setStyle("-fx-text-fill: black");
+                        		}
+                        		else
+                        		{
+                        			//lb.setStyle("-fx-text-fill: white");
+                        			lb.setStyle("-fx-text-fill: "+t.getCor()+";");
+                        		}*/
+                        		
+                        		
+                        		
+                        		//bolinha
+                        		Canvas canvas = new Canvas(300, 250);//Cria um canvas
+                        		canvas.heightProperty().set(20);	//mete a altura a 20px
+                        		canvas.widthProperty().set(20);		//mete a altura a 20px
+                        		
+                                GraphicsContext gc = canvas.getGraphicsContext2D();//desenha os graficos
+                                gc.setFill(c);	//define a cor dos metodos fill
+                                gc.fillOval(5, 5, 10, 10);//desenha uma bola cheia na posicao x y e altura  e largura w,h
+                                if(c.getBrightness() > 0.65)
+                        		{
+                        			gc.setStroke(Color.BLACK);
+                        			gc.strokeOval(5, 5, 10, 10);
+                        		}
+                        		h.getChildren().add(lb);
+                        		h.getChildren().add(canvas);
+                        		
+                        		//mete os graficos
+                        		setGraphic(h);	//recebe uma node
 	                        	//}
 
 	                        }
@@ -488,9 +567,6 @@ public class Main extends Application {
 	        });
 	        
 	       
-	        //notas.getItems().addAll(new Nota("Teste1"),new Nota("Teste2"),new Nota("Teste3"));				
-	        notas.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE); //Permite selecionar varias notas ao mesmo tempo
-	        
 	        //Evento de selecionar elemento
 	        notas.getSelectionModel().selectedItemProperty().addListener(e->{
 	        	
@@ -539,6 +615,69 @@ public class Main extends Application {
 	        	//Apresenta a nov a scene
 	        	primaryStage.setScene(editarNota);
 	        	primaryStage.show();
+	        });
+	        
+	        
+	        //--------------
+	        //	GRUPOS
+	        //--------------
+	        
+	        grupos = new ListView<>();
+	        myObservableListGrupos = FXCollections.observableList(myListGrupos);
+	        grupos.setItems(myObservableListGrupos);
+	        
+	        grupos.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE); //Permite selecionar varias notas ao mesmo tempo
+	        
+	        //Muda a forma de apresentar os dados na list view, utiliza o obj Grupo em vez de String
+	        grupos.setCellFactory(new Callback<ListView<Grupo>, ListCell<Grupo>>(){
+	 
+	            @Override
+	            public ListCell<Grupo> call(ListView<Grupo> p) {
+	                
+	                ListCell<Grupo> cell = new ListCell<Grupo>(){
+	 
+	                    @Override
+	                    protected void updateItem(Grupo t, boolean bln) {
+	                        super.updateItem(t, bln);
+	                        if (t != null) {
+	                        
+                        		Label lb = new Label(t.getNome());
+                        		HBox h = new HBox();
+                        		
+                        		Color c = Utils.StringToColor(t.getCor());
+                        		
+
+                        		//bolinha
+                        		Canvas canvas = new Canvas(300, 250);//Cria um canvas
+                        		canvas.heightProperty().set(20);	//mete a altura a 20px
+                        		canvas.widthProperty().set(20);		//mete a altura a 20px
+                        		
+                                GraphicsContext gc = canvas.getGraphicsContext2D();//desenha os graficos
+                                gc.setFill(c);	//define a cor dos metodos fill
+                                gc.fillOval(5, 5, 10, 10);//desenha uma bola cheia na posicao x y e altura  e largura w,h
+                                if(c.getBrightness() > 0.65)
+                        		{
+                        			gc.setStroke(Color.BLACK);
+                        			gc.strokeOval(5, 5, 10, 10);
+                        		}
+                        		h.getChildren().add(lb);
+                        		h.getChildren().add(canvas);
+                        		
+                        		//mete os graficos
+                        		setGraphic(h);	//recebe uma node
+
+	                        }
+	                        else
+	                        {
+	                        	//https://stackoverflow.com/questions/25286355/removing-items-from-listview-strange-behaviour/25286510#25286510?newreg=887820fc058c4b90a82606de81a9a7fa
+	                        	setGraphic(null);//Necessario, quando é eleminado um item, para apagar graficamente
+	                        }
+	                    }
+	 
+	                };
+	                
+	                return cell;
+	            }
 	        });
 	        
 	        /* 
