@@ -14,6 +14,8 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Label;
@@ -27,6 +29,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.util.Callback;
 
 /*
@@ -67,6 +70,9 @@ As propriedades são:
  */
 public class Main extends Application {
 
+	//utilizador
+	Utilizador user;
+	
 	//Selecionado
 	int selecionadoIndex = 0;//guarda a posicao em que foi clicada, serve essencialmente no alterar 
 	
@@ -80,6 +86,7 @@ public class Main extends Application {
 	
 	//Nota para alterar
 	Nota alterar;
+	String temp = ""; //armazena valores temporarios como as notas
 	
 	//???
 	public static void main(String[] args) {
@@ -139,7 +146,15 @@ public class Main extends Application {
 	        		//nota.add(new Nota(txtNome.getText()));
 	        		//notas.getItems().add(txtNome.getText());
 	        		//notas.getItems().add(new Nota(txtNome.getText()));
-	        		myList.add(new Nota(txtNome.getText(),Utils.colorToString(cor.getValue())));
+	        		
+	        		//cria uma nota
+	        		Nota criarNota = new Nota(txtNome.getText(),Utils.colorToString(cor.getValue()));
+	        		criarNota.setConteudo(temp); //mete o valor armazenado
+	        		
+	        		//apaga a string
+	        		temp = "";
+	        		
+	        		myList.add(criarNota);
 	        		myObservableList = FXCollections.observableList(myList);
 	    	        notas.setItems(myObservableList);
 	    	        //Utils.alertBox(Utils.colorToString(cor.getValue()));
@@ -163,7 +178,7 @@ public class Main extends Application {
 	        	
 	        	//Altera e apresenta a nova scene
 	        	txtNome.requestFocus();//foca-se no nome, visto que é normal de mudar
-	        	notas.getSelectionModel().clearSelection();//limpa a seleção
+	        	//notas.getSelectionModel().clearSelection();//limpa a seleção
 	        	
 	        	primaryStage.setScene(criarNota);
 	        	primaryStage.show();
@@ -269,6 +284,8 @@ public class Main extends Application {
 		    	        notas.setItems(myObservableList);//mete a observable list
 		    	        
 		    	        //Utils.alertBox(txtNome.getText() + notas.getSelectionModel().getSelectedIndex());
+		    	        //Cria uma copia do layoutRoot para o criar
+			        	
 		        	});
 		        	
 		        	//Horizontal layout
@@ -352,6 +369,13 @@ public class Main extends Application {
 		        		eliminar.apagarNota();
 		        		//TODO: fazer o carimbo funcionar
 		        		myList.remove(selecionadoIndex);//remove da lista
+		        		/*List<Nota> tempLista = new ArrayList<>();
+		        		for(Nota n : myList)
+		        		{
+		        			tempLista.add(n);
+		        		}
+		        		myList.clear();
+		        		myList = tempLista;*/
 		        		
 		        		//Atualiza a lista
 		        		//myList.set(selecionadoIndex, alterar);// muda na lista o obj
@@ -387,19 +411,73 @@ public class Main extends Application {
 	 
 	            @Override
 	            public ListCell<Nota> call(ListView<Nota> p) {
-	                 
+	                
 	                ListCell<Nota> cell = new ListCell<Nota>(){
 	 
 	                    @Override
 	                    protected void updateItem(Nota t, boolean bln) {
 	                        super.updateItem(t, bln);
 	                        if (t != null) {
-	                        	if(!t.getCarimboApagado())//Verifica se a nota esta carimbada como apagada
-	                        	{
-	                        		setText(t.getTitulo());
+	                        	//if(!t.getCarimboApagado())//Verifica se a nota esta carimbada como apagada
+	                        	//{
+	                        		//setText(t.getTitulo());
 	                        		//cell.setStyle("-fx-background-color: "+t.getCor()+";");
-	                        	}
+	                        		Label lb = new Label(t.getTitulo());
+	                        		HBox h = new HBox();
+	                        		
+	                        		//Opcao 1, muda o background e faz o contraste da letra
+	                        		//h.setStyle("-fx-background-color: "+t.getCor()+";");
+	                        		//http://www.w3.org/WAI/ER/WD-AERT/#color-contrast
+	                        		/*
+	                        		 * Color brightness is determined by the following formula:
+									 *((Red value X 299) + (Green value X 587) + (Blue value X 114)) / 1000
+									 * Note: This algorithm is taken from a formula for converting RGB values to YIQ values. This brightness value gives a perceived brightness for a color.
+									 *
+									 * Color difference is determined by the following formula:
+								     * (maximum (Red value 1, Red value 2) - minimum (Red value 1, Red value 2)) + (maximum (Green value 1, Green value 2) - minimum (Green value 1, Green value 2)) + (maximum (Blue value 1, Blue value 2) - minimum (Blue value 1, Blue value 2))
+									 *
+									 * The rage for color brightness difference is 125. The range for color difference is 500.
+	                        		 */
+	                        		Color c = Utils.StringToColor(t.getCor());
+	                        		
+	                        		/*
+	                        		if(c.getBrightness() > 0.5)
+	                        		{
+	                        			lb.setStyle("-fx-text-fill: black");
+	                        		}
+	                        		else
+	                        		{
+	                        			//lb.setStyle("-fx-text-fill: white");
+	                        			lb.setStyle("-fx-text-fill: "+t.getCor()+";");
+	                        		}*/
+	                        		
+	                        		
+	                        		
+	                        		//bolinha
+	                        		Canvas canvas = new Canvas(300, 250);//Cria um canvas
+	                        		canvas.heightProperty().set(20);	//mete a altura a 20px
+	                        		canvas.widthProperty().set(20);		//mete a altura a 20px
+	                        		
+	                                GraphicsContext gc = canvas.getGraphicsContext2D();//desenha os graficos
+	                                gc.setFill(c);	//define a cor dos metodos fill
+	                                gc.fillOval(5, 5, 10, 10);//desenha uma bola cheia na posicao x y e altura  e largura w,h
+	                                if(c.getBrightness() > 0.65)
+	                        		{
+	                        			gc.setStroke(Color.BLACK);
+	                        			gc.strokeOval(5, 5, 10, 10);
+	                        		}
+	                        		h.getChildren().add(lb);
+	                        		h.getChildren().add(canvas);
+	                        		
+	                        		//mete os graficos
+	                        		setGraphic(h);	//recebe uma node
+	                        	//}
 
+	                        }
+	                        else
+	                        {
+	                        	//https://stackoverflow.com/questions/25286355/removing-items-from-listview-strange-behaviour/25286510#25286510?newreg=887820fc058c4b90a82606de81a9a7fa
+	                        	setGraphic(null);//Necessario, quando é eleminado um item, para apagar graficamente
 	                        }
 	                    }
 	 
@@ -477,13 +555,47 @@ public class Main extends Application {
 	        StyleClassedTextArea area = new StyleClassedTextArea(); 		//Cria um rich text box que permite ter formatações de texto
 	        area.prefWidthProperty().bind(layoutCentral.widthProperty());	//alinha com o tamanho maximo da janela
 	        
+	        //Guarda os dados para uma string temporaria
+	        area.setOnKeyReleased(soltar->{
+	        	temp = area.getText(); //guarda a informação
+	        });
+	        
 	        layoutCentral.getChildren().add(notas);		//mete a lista de notas em primeiro lugar (esquerda)
 	        layoutCentral.getChildren().add(area);		//mete a caixxa de texto para editar em segundo (direita)
 			
 	        
+	        //---------Login---------
+	        
+	        BorderPane layoutLogin = new BorderPane();//layout do login
+	        
+	        VBox layoutForm = new VBox();//vair organizar tudo em linha
+	        
+	        HBox layoutEmail = new HBox();	//Vai ter a label e a textField para o email
+	        HBox layoutPass = new HBox();	//Vai ter a label e a textField para a password
+	        Label labelRegistar = new Label("Não tem conta? Clique aqui para registar!");	//Apresenta a opcao de registar
+	        Button btnLogin = new Button("Login"); 	//Serve para fazer o login após preenchido os dados
+	        
+	        Label labelEmail = new Label("Email: ");	//Aspeto grafico que indica para introduzir o email
+	        TextField txtEmail = new TextField();	//Recebe os dados introduzidos do email
+	        
+	        Label labelPass = new Label("Pass:  ");	//Aspeto grafico que indica para introduzir a pass
+	        TextField txtPass = new TextField();	//Recebe os dados introduzidos do email
+	        
+	        layoutEmail.setAlignment(Pos.CENTER); //Alinha ao meio a layout do email
+	        layoutPass.setAlignment(Pos.CENTER);  //Alinha ao meio a layout da pass
+	        btnLogin.setAlignment(Pos.CENTER);    //Alinha o botao login ao meio
+	        layoutForm.setAlignment(Pos.CENTER);  //Centra a Form no meio
+	        labelRegistar.setAlignment(Pos.CENTER);//Same
+	        
+	        layoutEmail.getChildren().addAll(labelEmail,txtEmail);
+	        layoutPass.getChildren().addAll(labelPass,txtPass);
+	        
+	        layoutForm.getChildren().addAll(layoutEmail,layoutPass,btnLogin,labelRegistar);
+	        
+	        layoutLogin.setCenter(layoutForm);
 	        
 	        
-			
+	        
 			/*------------Fase da layout principal------------*/
 			
 			//Pane principal que ira contér tudo do menu principal
@@ -498,17 +610,29 @@ public class Main extends Application {
 			
 			/*------------Fase da scene------------*/
 			
+			//Scene do login
+			Scene sceneLogin = new Scene(layoutLogin,400,400);	//A layout principal é posta na scene
+			
 			//Scene do ambiente de trabalho
-			Scene scene = new Scene(layoutRoot,400,400);	//A layout principal é posta na scene
+			Scene scenePrincipal = new Scene(layoutRoot,400,400);	//A layout principal é posta na scene
 			
 			
-			
+			//Quando o utilizador fazer o login
+	        btnLogin.setOnAction(fazerLogin ->{ //clicar buttao
+	        	
+	        	
+	        	//TODO: ligar a base de dados para obter informacao do utilizador
+	        	user = new Utilizador("David","123");
+	        	
+	        	primaryStage.setScene(scenePrincipal);
+
+	        });
 			
 			
 			/*------------Fase da stage------------*/
 			
 			//É definido alguns parametros da stage principal
-			primaryStage.setScene(scene);			//mete a scene principal
+			primaryStage.setScene(sceneLogin);			//mete a scene principal
 			primaryStage.setTitle("Bloco de Notas");//mete o titulo
 			
 			//Dimensões da janela
