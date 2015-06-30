@@ -26,25 +26,5 @@
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/Desktop/richtextfx-demos-fat-0.6.4.jar</locationURI>
 		</link>
-		<link>
-			<name>src/application/Grupo.java</name>
-			<type>1</type>
-			<location>C:/Users/david/git/03PSI_JavaFX_BlocoNotas/src/application/Grupo.java</location>
-		</link>
-		<link>
-			<name>src/application/Nota.java</name>
-			<type>1</type>
-			<location>C:/Users/david/git/03PSI_JavaFX_BlocoNotas/src/application/Nota.java</location>
-		</link>
-		<link>
-			<name>src/application/Topico.java</name>
-			<type>1</type>
-			<location>C:/Users/david/git/03PSI_JavaFX_BlocoNotas/src/application/Topico.java</location>
-		</link>
-		<link>
-			<name>src/application/Utilizador.java</name>
-			<type>1</type>
-			<location>C:/Users/david/git/03PSI_JavaFX_BlocoNotas/src/application/Utilizador.java</location>
-		</link>
 	</linkedResources>
 </projectDescription>
