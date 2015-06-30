@@ -9,6 +9,7 @@ import java.util.List;
 import org.fxmisc.richtext.StyleClassedTextArea;
 
 import javafx.application.Application;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
@@ -18,6 +19,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -75,6 +77,7 @@ public class Main extends Application {
 	
 	//Selecionado
 	int selecionadoIndex = 0;//guarda a posicao em que foi clicada, serve essencialmente no alterar 
+	int selecionadoIndexG = 0;//guarda a posicao em que foi clicada, serve essencialmente no alterar e para os grupos
 	
 	//O menu bar é comum a todas as funcoes e scenes
 	MenuBar menuBar; //Faz o menu de classe
@@ -92,6 +95,7 @@ public class Main extends Application {
 		
 	//Nota para alterar
 	Nota alterar;
+	Grupo alterarG;
 	String temp = ""; //armazena valores temporarios como as notas
 	
 	//???
@@ -129,7 +133,80 @@ public class Main extends Application {
 	        	//Cria um caixa de introdução de cor
 	        	ColorPicker cor = new ColorPicker();
 	        	
-	        	//ComboBox grupo = new ComboBox();
+	        	//ComboBox para os grupos
+	        	ComboBox<Grupo> grupo = new ComboBox<>();
+	        	grupo.setCellFactory(new Callback<ListView<Grupo>, ListCell<Grupo>>(){
+	 
+		            @Override
+		            public ListCell<Grupo> call(ListView<Grupo> p) {
+		                
+		                ListCell<Grupo> cell = new ListCell<Grupo>(){
+		 
+		                    @Override
+		                    protected void updateItem(Grupo t, boolean bln) {
+		                        super.updateItem(t, bln);
+		                        if (t != null) {
+		                        
+	                        		Label lb = new Label(t.getNome());
+	                        		HBox h = new HBox();
+	                        		
+	                        		Color c = Utils.StringToColor(t.getCor());
+	                        		
+	
+	                        		//bolinha
+	                        		Canvas canvas = new Canvas(300, 250);//Cria um canvas
+	                        		canvas.heightProperty().set(20);	//mete a altura a 20px
+	                        		canvas.widthProperty().set(20);		//mete a altura a 20px
+	                        		
+	                                GraphicsContext gc = canvas.getGraphicsContext2D();//desenha os graficos
+	                                gc.setFill(c);	//define a cor dos metodos fill
+	                                gc.fillOval(5, 5, 10, 10);//desenha uma bola cheia na posicao x y e altura  e largura w,h
+	                                if(c.getBrightness() > 0.65)
+	                        		{
+	                        			gc.setStroke(Color.BLACK);
+	                        			gc.strokeOval(5, 5, 10, 10);
+	                        		}
+	                        		h.getChildren().add(lb);
+	                        		h.getChildren().add(canvas);
+	                        		
+	                        		//mete os graficos
+	                        		setGraphic(h);	//recebe uma node
+	
+		                        }
+		                        else
+		                        {
+		                        	//https://stackoverflow.com/questions/25286355/removing-items-from-listview-strange-behaviour/25286510#25286510?newreg=887820fc058c4b90a82606de81a9a7fa
+		                        	setGraphic(null);//Necessario, quando é eleminado um item, para apagar graficamente
+		                        }
+		                    }
+		 
+		                };
+		                
+		                return cell;
+		            }
+		        });
+	        	
+	        	//http://stackoverflow.com/questions/19242747/javafx-editable-combobox-showing-tostring-on-item-selection
+	        	//apos escolher a opcao apresentar na caixa de acordo com o obj grupo
+	        	grupo.setButtonCell(new ListCell<Grupo>(){
+
+					@Override
+					protected void updateItem(Grupo t, boolean bln) {
+						// TODO Auto-generated method stub
+						super.updateItem(t, bln);
+						if (bln) {
+		                    setText("");
+		                } else {
+		                    //setText(getStringField(t));
+		                	setText(t.getNome());
+		                }
+					}
+
+	        		
+	        	});
+	        	
+	        	myObservableListGrupos = FXCollections.observableList(myListGrupos);
+	        	grupo.setItems(myObservableListGrupos);
 	        	
 	        	//Cria a nota
 	        	Button criar = new Button("Criar");
@@ -144,6 +221,7 @@ public class Main extends Application {
 	        	//mete os elementos todos
 	        	layoutForm.getChildren().add(txtCriaNota);
 	        	layoutForm.getChildren().add(layoutNomeCor);
+	        	layoutForm.getChildren().add(grupo);
 	        	layoutForm.getChildren().add(criar);
 
 	        	//Cria a ação do botão criar
@@ -152,9 +230,10 @@ public class Main extends Application {
 	        		//notas.getItems().add(txtNome.getText());
 	        		//notas.getItems().add(new Nota(txtNome.getText()));
 	        		
-	        		//cria uma nota
+	        		//cria uma nota TODO: limitar tamanho da nota(e grupo)
 	        		Nota criarNota = new Nota(txtNome.getText(),Utils.colorToString(cor.getValue()));
 	        		criarNota.setConteudo(temp); //mete o valor armazenado
+	        		criarNota.setGrupo(grupo.getValue());//recebe o grupo a que pertence
 	        		
 	        		//apaga a string
 	        		temp = "";
@@ -310,14 +389,14 @@ public class Main extends Application {
 		        	
 		        	//ComboBox grupo = new ComboBox();
 		        	
-		        	//Cria a nota
+		        	//Altera a nota
 		        	Button editar = new Button("Alterar");
 		        	
 		        	//Cria um caixa de texto
 		        	StyleClassedTextArea area = new StyleClassedTextArea();
 		        	area.appendText(alterar.getConteudo());
 		        	
-		        	//layout que vai conter todos os elementos de criação da nota
+		        	//layout que vai conter todos os elementos de alteração da nota
 		        	VBox layoutForm = new VBox(10);
 		        	
 		        	//Mete a cor e o nome um ao lado do outro
@@ -386,6 +465,105 @@ public class Main extends Application {
 	        // --SubMenu Grupo
 	        MenuItem menuEditarGrupo = new MenuItem("Editar _Grupo");
 	        
+	        menuEditarGrupo.setOnAction(EeditarGrupo->{ //Mostra a interface de editar
+	        	
+	        	boolean criarInterface = true;//O sistema evita de criar um interface se não houver grupos criados ou não selecionadas
+	        	alterarG = new Grupo("Erro ao abrir Grupo!"); //Armazena a informação do grupo que queremos alterar
+	        	selecionadoIndexG = grupos.getSelectionModel().getSelectedIndex();//forma mais conviniente de utilizar o index
+	        	
+	        	//Comeca por buscar o grupo selecionado
+	        	try
+	        	{
+	        		alterarG = myListGrupos.get(selecionadoIndexG);
+	        	}
+	        	catch(java.lang.ArrayIndexOutOfBoundsException naoSelecionado) //Caso nao esteja nenhum selecionada
+	        	{
+	        		if(myListGrupos.size() == 0) //Se nao selecionou porque nao havia elementos criados entao devolve a mensagem devida
+	        		{
+	        			Utils.alertBox("Crie uma grupo primeiro!");  
+	        		}
+	        		else	//senao pede para selecionar
+	        		{
+	   	        		Utils.alertBox("Selecione primeiro o grupo que quer alterar!");     			
+	        		}
+
+	        		criarInterface = false;
+	        	}
+	        	
+	        	if(criarInterface)//se tiver tudo ok
+	        	{
+		        	//Label criar nota
+		        	Label txtEditarGrupo = new Label("Editar Grupo");
+		        	txtEditarGrupo.setAlignment(Pos.CENTER); //alinha ao centro TODO: Ver porque não alinha
+		        	
+		        	//Recebe o nome da nota
+		        	TextField txtNome = new TextField();
+		        	txtNome.setText(alterarG.getNome()); //Mete valor por defeito
+		        	txtNome.positionCaret(0);	  //Coloca a posição da seleção a partir do ponto 0 (antes da primeira letra)
+		        	txtNome.selectAll();		  //Seleciona tudo a partir da posicao 0 ate ao fim
+		        	
+		        	//Cria um caixa de introdução de cor
+		        	ColorPicker cor = new ColorPicker();
+		        	cor.setValue(Utils.StringToColor(alterarG.getCor()));
+
+		        	//Altera o grupo
+		        	Button editar = new Button("Alterar");
+		        	
+		        	//layout que vai conter todos os elementos de alteração do grupo
+		        	VBox layoutForm = new VBox(10);
+		        	
+		        	//Mete a cor e o nome um ao lado do outro
+		        	HBox layoutNomeCor = new HBox();
+		        	layoutNomeCor.getChildren().addAll(txtNome,cor);
+		        	
+		        	//mete os elementos todos
+		        	layoutForm.getChildren().add(txtEditarGrupo);
+		        	layoutForm.getChildren().add(layoutNomeCor);
+		        	layoutForm.getChildren().add(editar);
+	
+		        	//Cria a ação do botão criar
+		        	editar.setOnAction(a->{
+		        		
+		        		//Mudar conteudo
+		        		alterarG.setNome(txtNome.getText());//altera o nome
+		        		alterarG.setCor(Utils.colorToString(cor.getValue()));//altera a cor
+		        		
+		        		try
+		        		{
+		        			myListGrupos.set(selecionadoIndexG, alterarG);// muda na lista o obj
+		        		}
+		        		catch(java.lang.ArrayIndexOutOfBoundsException naoSelecionado)
+		        		{
+		        			Utils.alertBox("Não foi possivel guardar, por favor abra de novo o grupo!");
+		        		}
+		        		myObservableListGrupos = FXCollections.observableList(myListGrupos);//atualiza a observable list
+		        		grupos.setItems(null); //Serve para enganar o sistema, porque os grupo so dao refresh quando é adicionado ou removido
+		    	        grupos.setItems(myObservableListGrupos);//mete a observable list
+			        	
+		        	});
+		        	
+		        	//Horizontal layout
+		        	HBox layoutHorizontal = new HBox();
+		        	
+		        	layoutHorizontal.getChildren().add(layoutForm);
+		        	layoutForm.prefWidthProperty().bind(layoutHorizontal.widthProperty());	//ajusta o espaco
+		        	
+		        	//Cria a layout para a scene
+		        	BorderPane layoutEditarGrupo = new BorderPane();			
+		        	
+		        	//Coloca o menu bar no topo e a layout horizontal
+		        	layoutEditarGrupo.setTop(menuBar);
+		        	layoutEditarGrupo.setCenter(layoutHorizontal);
+		        	
+		        	//Cria a scene nova para alterar na primaryStage
+		        	Scene editarGrupo = new Scene(layoutEditarGrupo,100,100);
+		        	
+		        	//Altera e apresenta a nova scene
+		        	txtNome.requestFocus();
+		        	primaryStage.setScene(editarGrupo);
+		        	primaryStage.show();
+	        	}
+	        });
 	        //--Adicionar todos submenus
 	        menuEditar.getItems().addAll(menuEditarNota,menuEditarGrupo);
 	        

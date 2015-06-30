@@ -152,4 +152,12 @@ public class Nota {
 		this._conteudo = aConteudo;
 	}
 	
+	public Grupo getGrupo() {
+		return this._pertence;
+	}
+
+	public void setGrupo(Grupo aGrupo) {
+		this._pertence = aGrupo;
+	}
+	
 }
