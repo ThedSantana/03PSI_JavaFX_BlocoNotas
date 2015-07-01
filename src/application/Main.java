@@ -70,6 +70,10 @@ As propriedades são:
 
         O processo de criar um nota é só criar a cabeça pois o seu conteúdo fica acessível ao editar,
  */
+//TODO: Fazer metodo que sincroniza a lista myList com BD
+	//Quando cria uma nota mete na lista
+	//Quando o programa é aberto as notas da bd vao para a lista
+	//...
 public class Main extends Application {
 
 	//utilizador
@@ -85,6 +89,7 @@ public class Main extends Application {
 	//Faz as notas serem acessiveis a toda a classe
 	ListView<Nota> notas;		//list view que apresenta as notas, e serve para saber que nota o utilizador quer utilizar
 	List<Nota> myList = new ArrayList<>();	//Guarda as notas numa lista 
+	List<Nota> notasGrupos = new ArrayList<>();	//Guarda as notas que pertencem a um grupo especifico 
 	ObservableList<Nota> myObservableList;	//utiliza a lista de notas que depois é organizada pela listView para ser apresentada
 	
 	//Faz os grupos serem acessiveis a toda a classe
@@ -537,16 +542,35 @@ public class Main extends Application {
 		        			Utils.alertBox("Não foi possivel guardar, por favor abra de novo o grupo!");
 		        		}
 		        		myObservableListGrupos = FXCollections.observableList(myListGrupos);//atualiza a observable list
-		        		grupos.setItems(null); //Serve para enganar o sistema, porque os grupo so dao refresh quando é adicionado ou removido
+		        		grupos.setItems(null); //Serve para enganar o sistema, porque os grupo so dao refresh quando é adicionado ou alterado
 		    	        grupos.setItems(myObservableListGrupos);//mete a observable list
 			        	
 		        	});
 		        	
+		        	
+		        	//Lista de notas que pertencem ao grupo
+		        	
+		        	notasGrupos.clear();//limpa a lista (é um especie de lista temporaria)
+        			
+		        	for(Nota analisar : myList) //verifica na lista de notas ativa 
+		        	{
+		        		if(analisar._pertence == alterarG)//se a nota tiver associada ao grupo que esta a ser alterado a condicao será verdadeira
+		        		{
+		        			notasGrupos.add(analisar);//adiciona as notas que interessam a lista para o grupo
+		        		}
+		        	}
+		        	
+		        	myObservableList = FXCollections.observableList(notasGrupos);//atualiza a observable list mas desta vez com as notas de outra lista
+	        		notas.setItems(null); //Serve para enganar o sistema, porque as notas so dao refresh quando é adicionado ou removido
+	    	        notas.setItems(myObservableList);//mete a observable list
+		        	
 		        	//Horizontal layout
 		        	HBox layoutHorizontal = new HBox();
 		        	
-		        	layoutHorizontal.getChildren().add(layoutForm);
+		        	layoutHorizontal.getChildren().add(layoutForm);//adiciona a form ao centro
+		        	layoutHorizontal.getChildren().add(notas);//adiciona o menu de notas que pertencem ao grupo
 		        	layoutForm.prefWidthProperty().bind(layoutHorizontal.widthProperty());	//ajusta o espaco
+		        	//notas.prefWidthProperty().bind(layoutHorizontal.widthProperty());	//ajusta o espaco
 		        	
 		        	//Cria a layout para a scene
 		        	BorderPane layoutEditarGrupo = new BorderPane();			
@@ -638,6 +662,52 @@ public class Main extends Application {
 	        // --SubMenu Grupo
 	        MenuItem menuEliminarGrupo = new MenuItem("Eliminar _Grupo");
 	        
+	        menuEliminarGrupo.setOnAction(EeliminarGrupo->{//coisas de eliminar
+	        	
+	        	Grupo eliminar = new Grupo("erro ao abrir!"); //obter obj Grupo
+	        	boolean resposta = false; 	//recebe os valores introduzidos pelo utilizador
+	        								//é tambem utilizado de outra forma inicialmente, verifica se pode apagar ou nao o grupo
+	        	selecionadoIndexG = grupos.getSelectionModel().getSelectedIndex();//obter indice na lista
+	        	
+	        	try
+        		{
+	        		eliminar = myListGrupos.get(selecionadoIndexG);//recebe o grupo
+	        		resposta = true;
+        		}
+        		catch(java.lang.ArrayIndexOutOfBoundsException naoSelecionado)
+        		{
+        			if(myListGrupos.size() == 0) //Se nao selecionou porque nao havia elementos criados entao devolve a mensagem devida
+	        		{
+	        			Utils.alertBox("Não existem grupos para eliminar!");  
+	        		}
+	        		else	//senao pede para selecionar
+	        		{
+	        			Utils.alertBox("Por favor selecione o grupo primeiro!");    			
+	        		}
+        		}
+	        
+	        	if(resposta)//Verifica se esta tudo ok
+	        	{
+	        		
+		        	resposta = Utils.confirmationBox("Deseja eliminar permanentemente o grupo?\n" + eliminar.getNome() +"?");//Pergunta se quer realmente apagar
+		        	
+		        	if(resposta) //Se sim, quiser apagar
+		        	{
+
+		        		//Carimba como apagado
+		        		eliminar.apagarGrupo();
+		        		//TODO: fazer o carimbo funcionar
+		        		myListGrupos.remove(selecionadoIndexG);//remove da lista
+		        		
+		        		//Atualiza a lista
+		        		myObservableListGrupos = FXCollections.observableList(myListGrupos);//atualiza a observable list
+		        		grupos.setItems(null); //Serve para enganar o sistema, porque os grupos so dao refresh quando é adicionado ou alterado
+		    	        grupos.setItems(myObservableListGrupos);//mete a observable list
+		        	}
+		        	
+	        	}
+	        	
+	        });
 	        //--Adicionar todos submenus
 	        menuEliminar.getItems().addAll(menuEliminarNota,menuEliminarGrupo);
 	        
@@ -858,6 +928,49 @@ public class Main extends Application {
 	            }
 	        });
 	        
+	        
+	        //Evento de selecionar elemento
+	        grupos.getSelectionModel().selectedItemProperty().addListener(e->{
+	        	
+	        	//Cria uma copia do layoutRoot para o criar
+	        	BorderPane layoutRootNota = new BorderPane();
+	        	//Mete o menu bar(comum para todos)
+	        	layoutRootNota.setTop(menuBar);
+	        	
+	        	//Cria um layoutCentral tambem uma copia do menu principal
+	        	HBox layoutCentralNota = new HBox();//É um vertical box porque é divido ao meio
+	        	//mete a listview que é comum na layout
+	        	layoutCentralNota.getChildren().add(grupos);
+	        	
+	        	//Lista de notas que pertencem ao grupo
+	        	notasGrupos.clear();//limpa a lista (é um especie de lista temporaria)
+	        	selecionadoIndexG = grupos.getSelectionModel().getSelectedIndex();//recebe a posicao do grupo selecionado
+	        	Grupo selecionado = myListGrupos.get(selecionadoIndexG);//recebe o grupo selecionado
+	        	
+	        	for(Nota analisar : myList) //verifica na lista de notas ativa 
+	        	{
+	        		if(analisar._pertence == selecionado)//se a nota tiver associada ao grupo que esta a ser selecionado a condicao será verdadeira
+	        		{
+	        			notasGrupos.add(analisar);//adiciona as notas que interessam a lista para o grupo
+	        		}
+	        	}
+	        	
+	        	myObservableList = FXCollections.observableList(notasGrupos);//atualiza a observable list mas desta vez com as notas de outra lista
+        		notas.setItems(null); //Serve para enganar o sistema, porque as notas so dao refresh quando é adicionado ou removido
+    	        notas.setItems(myObservableList);//mete a observable list
+	        	
+	        	//mete o elemento area na layout do centro
+	        	layoutCentralNota.getChildren().add(notas);
+	        	//define o centro da border pane com a layout anterior
+	        	layoutRootNota.setCenter(layoutCentralNota);
+	        	
+	        	//Cria uma nova scene
+	        	Scene editarNota = new Scene(layoutRootNota,100,100);
+	        	
+	        	//Apresenta a nov a scene
+	        	primaryStage.setScene(editarNota);
+	        	primaryStage.show();
+	        });
 	        /* 
 	        TextFlow txt = new TextFlow();
 	        Text text = new Text("teste");
