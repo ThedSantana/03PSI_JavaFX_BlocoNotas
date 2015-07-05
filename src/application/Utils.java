@@ -14,9 +14,9 @@ public class Utils {
 	
 	//Constantes de dimensao
 	final static int MIN_WIDTH_SIZE = 350;
-	final static int MAX_WIDTH_SIZE = 350;
+	final static int MAX_WIDTH_SIZE = 3500;//TODO:ajustar estes valores
 	final static int MIN_HEIGHT_SIZE = 150;
-	final static int MAX_HEIGHT_SIZE = 150;
+	final static int MAX_HEIGHT_SIZE = 1500;
 	
 	//Serve para a confirmationBox, guarda o valor da resposta introduzida
 	static boolean resposta;

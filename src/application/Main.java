@@ -9,7 +9,6 @@ import java.util.List;
 import org.fxmisc.richtext.StyleClassedTextArea;
 
 import javafx.application.Application;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
@@ -113,6 +112,11 @@ public class Main extends Application {
 	@Override
 	public void start(Stage primaryStage) {
 		try {
+			///*-----------------Fase da sincronização com a BD ------------------*/
+			
+			//myList = UtilsSQLConn.getNotas(user);
+			
+			
 			
 			/*------------Fase dos objetos e das layouts secundarias------------*/
 			
@@ -242,6 +246,10 @@ public class Main extends Application {
 	        		
 	        		//apaga a string
 	        		temp = "";
+	        		
+	        		criarNota.setCodNota(UtilsSQLConn.adicionarNota(criarNota, user));//adiciona a nota a bd e atribui localmente o codNota
+	        		//criarNota.
+	        		//Utils.alertBox(""+criarNota.getCodNota());
 	        		
 	        		myList.add(criarNota);
 	        		myObservableList = FXCollections.observableList(myList);
@@ -421,6 +429,7 @@ public class Main extends Application {
 		        		alterar.setCor(Utils.colorToString(cor.getValue()));//altera a cor
 		        		alterar.setConteudo(area.getText());//altera o conteudo
 		        		
+		        		/*
 		        		try
 		        		{
 		        		//Utils.alertBox(""+notas.getSelectionModel().getSelectedIndex());
@@ -428,11 +437,16 @@ public class Main extends Application {
 		        		//logo é gerado um erro ao tentar colocar no indice de algo que não esta selecionado
 		        		//gerando o erro: java.lang.ArrayIndexOutOfBoundsException
 		        			myList.set(selecionadoIndex, alterar);// muda na lista o obj
+		        			
 		        		}
 		        		catch(java.lang.ArrayIndexOutOfBoundsException naoSelecionado)
 		        		{
 		        			Utils.alertBox("Não foi possivel guardar, por favor abra de novo a nota!");
-		        		}
+		        		}*/
+		        		
+		        		UtilsSQLConn.atualizarNota(alterar, user);
+		        		myList = UtilsSQLConn.getNotas(user);
+		        		
 		        		myObservableList = FXCollections.observableList(myList);//atualiza a observable list
 		        		notas.setItems(null); //Serve para enganar o sistema, porque as notas so dao refresh quando é adicionado ou removido
 		    	        notas.setItems(myObservableList);//mete a observable list
@@ -640,7 +654,9 @@ public class Main extends Application {
 		        		//Carimba como apagado
 		        		eliminar.apagarNota();
 		        		//TODO: fazer o carimbo funcionar
-		        		myList.remove(selecionadoIndex);//remove da lista
+		        		//myList.remove(selecionadoIndex);//remove da lista
+		        		UtilsSQLConn.atualizarNota(eliminar, user);
+		        		myList = UtilsSQLConn.getNotas(user);
 		        		/*List<Nota> tempLista = new ArrayList<>();
 		        		for(Nota n : myList)
 		        		{
@@ -724,6 +740,7 @@ public class Main extends Application {
 	        //--------------
 	        //	NOTAS
 	        //--------------
+	        
 	        
 	        notas = new ListView<>();
 	        myObservableList = FXCollections.observableList(myList);
@@ -813,10 +830,21 @@ public class Main extends Application {
 	                return cell;
 	            }
 	        });
-	        
+
+
 	       
 	        //Evento de selecionar elemento
 	        notas.getSelectionModel().selectedItemProperty().addListener(e->{
+	        	//TODO:ver isto
+	        	try
+	        	{
+		        	UtilsSQLConn.atualizarNota(myList.get(selecionadoIndex), user);
+	        	}
+	        	catch(java.lang.IllegalStateException vazio)//se o indice esta vazio ou aponta para um indice que nao existe
+	        	{
+	        		//nao faz nada
+	        	}
+	        	selecionadoIndex = notas.getSelectionModel().getSelectedIndex();//guarda a ultima posicao
 	        	
 	        	//Cria uma copia do layoutRoot para o criar
 	        	BorderPane layoutRootNota = new BorderPane();
@@ -1050,12 +1078,28 @@ public class Main extends Application {
 			//Quando o utilizador fazer o login
 	        btnLogin.setOnAction(fazerLogin ->{ //clicar buttao
 	        	
-	        	
-	        	//TODO: ligar a base de dados para obter informacao do utilizador
-	        	user = new Utilizador("David","123");
-	        	
-	        	primaryStage.setScene(scenePrincipal);
+	        	if(UtilsSQLConn.verificarUtilizador("davimfs7@gmail.com", "password"))//verifica as credenciais
+	        	//if(UtilsSQLConn.verificarUtilizador(txtEmail.getText(), txtPass.getText()))//verifica as credenciais
+	        	{
+	        		//Se for aceite é criado o utilizador
+	        		//user = new Utilizador(txtEmail.getText(),txtPass.getText());
+	        		user = new Utilizador("davimfs7@gmail.com","password");
+	        		
+	        		//atualiza a lista de notas do utilizador
+	        		myList = UtilsSQLConn.getNotas(user);
+        			myObservableList = FXCollections.observableList(myList);
+        			//notas.
+	    	        notas.setItems(myObservableList);
 
+	    	        
+	        		//e abre o ambiente de trabalho
+		        	primaryStage.setScene(scenePrincipal);
+	        	}
+	        	else//se não conseguir efetuar o login
+	        	{
+	        		Utils.alertBox("Combinação email e/ou password inválida!");//manda mensagem de erro
+	        	}
+	        	
 	        });
 			
 			
