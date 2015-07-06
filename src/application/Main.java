@@ -69,10 +69,7 @@ As propriedades são:
 
         O processo de criar um nota é só criar a cabeça pois o seu conteúdo fica acessível ao editar,
  */
-//TODO: Fazer metodo que sincroniza a lista myList com BD
-	//Quando cria uma nota mete na lista
-	//Quando o programa é aberto as notas da bd vao para a lista
-	//...
+
 public class Main extends Application {
 
 	//utilizador
@@ -81,6 +78,7 @@ public class Main extends Application {
 	//Selecionado
 	int selecionadoIndex = 0;//guarda a posicao em que foi clicada, serve essencialmente no alterar 
 	int selecionadoIndexG = 0;//guarda a posicao em que foi clicada, serve essencialmente no alterar e para os grupos
+	boolean iniciado = false;//serve para dizer se o ambiente de trabalho ja foi iniciado e as base de dados ja foram atualizadas
 	
 	//O menu bar é comum a todas as funcoes e scenes
 	MenuBar menuBar; //Faz o menu de classe
@@ -115,7 +113,6 @@ public class Main extends Application {
 			///*-----------------Fase da sincronização com a BD ------------------*/
 			
 			//myList = UtilsSQLConn.getNotas(user);
-			
 			
 			
 			/*------------Fase dos objetos e das layouts secundarias------------*/
@@ -201,7 +198,6 @@ public class Main extends Application {
 
 					@Override
 					protected void updateItem(Grupo t, boolean bln) {
-						// TODO Auto-generated method stub
 						super.updateItem(t, bln);
 						if (bln) {
 		                    setText("");
@@ -648,15 +644,18 @@ public class Main extends Application {
 		        		if(resposta)//se sim, se quiser receber um email
 		        		{
 		        			//manda email ao utilizador
-		        			//TODO: fazer support com o email
+		        			Email.sendMail(eliminar, user);
 		        		}
 		        		
 		        		//Carimba como apagado
 		        		eliminar.apagarNota();
-		        		//TODO: fazer o carimbo funcionar
+		        		
 		        		//myList.remove(selecionadoIndex);//remove da lista
 		        		UtilsSQLConn.atualizarNota(eliminar, user);
 		        		myList = UtilsSQLConn.getNotas(user);
+		        		
+		        		iniciado = false; //diz que nao pode atualizar a ultima nota, visto que foi apagada
+		        		
 		        		/*List<Nota> tempLista = new ArrayList<>();
 		        		for(Nota n : myList)
 		        		{
@@ -712,7 +711,7 @@ public class Main extends Application {
 
 		        		//Carimba como apagado
 		        		eliminar.apagarGrupo();
-		        		//TODO: fazer o carimbo funcionar
+		        		
 		        		myListGrupos.remove(selecionadoIndexG);//remove da lista
 		        		
 		        		//Atualiza a lista
@@ -835,16 +834,15 @@ public class Main extends Application {
 	       
 	        //Evento de selecionar elemento
 	        notas.getSelectionModel().selectedItemProperty().addListener(e->{
-	        	//TODO:ver isto
-	        	try
-	        	{
-		        	UtilsSQLConn.atualizarNota(myList.get(selecionadoIndex), user);
-	        	}
-	        	catch(java.lang.IllegalStateException vazio)//se o indice esta vazio ou aponta para um indice que nao existe
-	        	{
-	        		//nao faz nada
-	        	}
+	        	
 	        	selecionadoIndex = notas.getSelectionModel().getSelectedIndex();//guarda a ultima posicao
+	        	
+	        	if(iniciado || selecionadoIndex>0)//se nao for o indice 0 pois no inicio é gerado conflito por ser o indice predefinido da
+	        	{									//da listView ou quando ja estiver iniciado, que já não gera conflito
+		        	UtilsSQLConn.atualizarNota(myList.get(selecionadoIndex), user);//atualiza a nota, essencialmente para o conteudo
+		        	iniciado = true;	//indica que foi iniciado, já não é a primeira vez que altera um valor
+	        	}
+
 	        	
 	        	//Cria uma copia do layoutRoot para o criar
 	        	BorderPane layoutRootNota = new BorderPane();
@@ -1124,6 +1122,23 @@ public class Main extends Application {
 		}
 		
 	}//Fim metodo start
+
+
+
+	//Evento de quando a aplicação é para executa codigo
+	//Serve para guardar as notas antes de o programa fechar
+	@Override
+	public void stop() throws Exception {
+		//Utils.alertBox("teste parar");
+		
+		//passa pelas notas notas para guardar uma a uma
+		for(Nota fechar : myList)
+		{
+			//UtilsSQLConn.atualizarNota(fechar, user);TODO:ativar esta funcao
+		}
+		
+		super.stop();//fecha realmente o programa
+	}
 	
 	
 }//Fim class main
