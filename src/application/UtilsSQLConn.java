@@ -339,7 +339,7 @@ public class UtilsSQLConn {
 	public static boolean verificarUtilizador(String email, String pass)
 	{
 		boolean autenticado = false; 	// variavel que indica se o email e a pass coicidem
-										//por defeito vem como false para evitar efetuar o login sem credenciais validas
+										// por defeito vem como false para evitar efetuar o login sem credenciais validas
 		
 		String query = "SELECT * FROM `utilizador` WHERE email = ";	//variavel que vai executar a query
 																	//É adaptada com os valores recebidos
@@ -392,6 +392,70 @@ public class UtilsSQLConn {
 		return autenticado;
 	}
 	
+	public static boolean criarUtilizador(String email, String pass)
+	{
+		boolean autenticado = true; 	// variavel que indica se a conta pode ser criada
+										// por defeito vem como true
+		
+		String query = "SELECT * FROM `utilizador` WHERE email = ";	//variavel que vai executar a query
+																	//É adaptada com os valores recebidos
+		
+		query = query + "\"" + email + "\""; //adiciona o email como indice de procura
+				
+		String insert = "INSERT INTO `utilizador`(`email`, `Password`) VALUES ("//String que mete a conta na bd caso seja valida
+				+ "\"" + email + "\","
+				+ "\"" + pass + "\");";
+		
+		try{
+			//Tenta ligar-se ao SGBD e à base de dados
+			Class.forName(MYSQL_JDBC_DRIVER).newInstance();
+			conn = DriverManager.getConnection(MYSQL_DB_URL, MYSQL_DB_USER, MYSQL_DB_PASS );
+			if(msgON){
+				Utils.alertBox("layoutLeft", "Base dados aberta");
+			}
+		}
+		catch(SQLException ex){							// Apanha Erro da connection ou DML
+			Utils.alertBox("layoutLeft", "Erro na ligação da BD");
+		}
+		catch(ClassNotFoundException ex){				// Apanha Erro da Class.forName()
+			Utils.alertBox("layoutLeft", "Erro no Driver");
+		}
+		catch(Exception ex){								// Apanha todas as restantes Exceções
+			Utils.alertBox("layoutLeft", "Erro genérico na ligação");
+			ex.printStackTrace();
+		}
+		finally{
+			try{
+				// Se ligação com sucesso, executa a query
+				if(!query.isEmpty()){		// Se a query tiver comando sql
+					
+					Statement stmt = conn.createStatement();
+					ResultSet rs = stmt.executeQuery(query);
+					while(rs.next()){ 	//procura por todos os emails iguais
+										//embora não possa haver emails repetidos é executa até encontrar uma combinação válida
+						
+						//Utils.alertBox(pass + " | " + rs.getString(2));
+						if(email.equals(rs.getString(1))) //se a password coincidir
+						{
+							autenticado = false; //é negada a craicao da conta
+						}
+					}
+					
+					if(autenticado)//se for aceite
+					{
+						stmt.executeUpdate(insert);//entao adiciona na bd
+					}
+				}		
+				shutdownConnection();
+			}
+			catch(SQLException ex){							// Apanha Erro da connection ou DML
+				Utils.alertBox("Finally", "Erro na ligação da query");
+				shutdownConnection();
+			}				
+		}
+		
+		return autenticado;
+	}
 	//recebe o id para a nota
 	//requer que a base de dados ja esteja aberta
 	public static long getCodNota()
@@ -608,5 +672,65 @@ public class UtilsSQLConn {
 		
 		
 		return myList;//devolve a lista
+	}
+	
+	//adiciona um grupo
+	public static long adicionarGrupo(Grupo novo)
+	{
+		String dml = "";
+		long pos = 0;
+		
+		//INSERT INTO `grupo`(`codGrupo`, `Cor`, `Nome`, `CarimboApagado`) VALUES (NULL,"#12fb4a","SGBD",0)
+		dml = "INSERT INTO `grupo`(`codGrupo`, `Cor`, `Nome`, `CarimboApagado`) VALUES (NULL,"
+				+ "\"" + novo.getCor() + "\","//cor
+				+ "\"" + novo.getNome() + "\",0)";	//nome
+		
+		System.out.println(dml);
+		
+		try{
+			//Tenta ligar-se ao SGBD e à base de dados
+			Class.forName(MYSQL_JDBC_DRIVER).newInstance();
+			conn = DriverManager.getConnection(MYSQL_DB_URL, MYSQL_DB_USER, MYSQL_DB_PASS );
+			if(msgON){
+				Utils.alertBox("layoutLeft", "Base dados aberta");
+			}
+		}
+		catch(SQLException ex){								// Apanha Erro da connection ou DML
+			Utils.alertBox("layoutLeft", "Erro na ligação da BD");
+		}
+		catch(ClassNotFoundException ex){					// Apanha Erro da Class.forName()
+			Utils.alertBox("layoutLeft", "Erro no Driver");
+		}
+		catch(Exception ex){								// Apanha todas as restantes Exceções
+			Utils.alertBox("layoutLeft", "Erro genérico na ligação");
+			ex.printStackTrace();
+		}
+		finally{
+			try{
+				// Se ligação com sucesso, executa a dml
+				Utils.alertBox(dml);
+				if(!dml.isEmpty()){		// Se a dml tiver comando sql, executa-o
+					
+					Statement stmt = conn.createStatement();		// Cria um obj comando sql
+					int dmlResult = stmt.executeUpdate(dml);		// Executa-o. Devolve o nº de registos tratados
+					if (dmlResult > 0 && msgON){					// Devolve inteiro > 0 se ok
+						Utils.alertBox("DB","Comando DML OK");		// 0 ou menor, se ERRO.
+					}
+					else{
+						if(msgON){
+							Utils.alertBox("DB","ERRO Comando DML");
+						}
+					}
+				}
+				pos = getCodNota();
+				shutdownConnection();
+			}
+			catch(SQLException ex){							// Apanha Erro da connection ou DML
+				Utils.alertBox("Finally", "Erro na ligação da Query");
+				ex.printStackTrace();
+				shutdownConnection();
+			}				
+		}
+		return pos;
 	}
 }

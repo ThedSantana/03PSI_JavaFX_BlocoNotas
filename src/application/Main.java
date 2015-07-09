@@ -1050,7 +1050,35 @@ public class Main extends Application {
 	        
 	        layoutLogin.setCenter(layoutForm);
 	        
+	        //---------Registar---------
 	        
+	        BorderPane layoutRegistar = new BorderPane();//layout do registar
+	        
+	        VBox layoutFormR = new VBox();//vair organizar tudo em linha
+	        
+	        HBox layoutIntroduzirEmail = new HBox();	//Vai ter a label e a textField para o email
+	        HBox layoutIntroduzirPass = new HBox();	//Vai ter a label e a textField para a password
+	        Label labelLogin = new Label("Já tem conta? Clique aqui para fazer o login!");	//Apresenta a opcao de registar
+	        Button btnRegistar = new Button("Registar"); 	//Serve para fazer o login após preenchido os dados
+	        
+	        Label labelRegistarEmail = new Label("Email: ");	//Aspeto grafico que indica para introduzir o email
+	        TextField txtRegistarEmail = new TextField();	//Recebe os dados introduzidos do email
+	        
+	        Label labelRegistarPass = new Label("Pass:  ");	//Aspeto grafico que indica para introduzir a pass
+	        TextField txtRegistarPass = new TextField();	//Recebe os dados introduzidos do email
+	        
+	        layoutIntroduzirEmail.setAlignment(Pos.CENTER); //Alinha ao meio a layout do email
+	        layoutIntroduzirPass.setAlignment(Pos.CENTER);  //Alinha ao meio a layout da pass
+	        btnRegistar.setAlignment(Pos.CENTER);    //Alinha o botao login ao meio
+	        layoutFormR.setAlignment(Pos.CENTER);  //Centra a Form no meio
+	        labelLogin.setAlignment(Pos.CENTER);//Same
+	        
+	        layoutIntroduzirEmail.getChildren().addAll(labelRegistarEmail,txtRegistarEmail);
+	        layoutIntroduzirPass.getChildren().addAll(labelRegistarPass,txtRegistarPass);
+	        
+	        layoutFormR.getChildren().addAll(layoutIntroduzirEmail,layoutIntroduzirPass,btnRegistar, labelLogin);
+	        
+	        layoutRegistar.setCenter(layoutFormR);
 	        
 			/*------------Fase da layout principal------------*/
 			
@@ -1069,6 +1097,9 @@ public class Main extends Application {
 			//Scene do login
 			Scene sceneLogin = new Scene(layoutLogin,400,400);	//A layout principal é posta na scene
 			
+			//Scene do login
+			Scene sceneRegistar = new Scene(layoutRegistar,400,400);	//A layout principal é posta na scene
+			
 			//Scene do ambiente de trabalho
 			Scene scenePrincipal = new Scene(layoutRoot,400,400);	//A layout principal é posta na scene
 			
@@ -1076,12 +1107,12 @@ public class Main extends Application {
 			//Quando o utilizador fazer o login
 	        btnLogin.setOnAction(fazerLogin ->{ //clicar buttao
 	        	
-	        	if(UtilsSQLConn.verificarUtilizador("davimfs7@gmail.com", "password"))//verifica as credenciais
-	        	//if(UtilsSQLConn.verificarUtilizador(txtEmail.getText(), txtPass.getText()))//verifica as credenciais
+	        	//if(UtilsSQLConn.verificarUtilizador("davimfs7@gmail.com", "password"))//verifica as credenciais
+	        	if(UtilsSQLConn.verificarUtilizador(txtEmail.getText(), txtPass.getText()))//verifica as credenciais
 	        	{
 	        		//Se for aceite é criado o utilizador
-	        		//user = new Utilizador(txtEmail.getText(),txtPass.getText());
-	        		user = new Utilizador("davimfs7@gmail.com","password");
+	        		user = new Utilizador(txtEmail.getText(),txtPass.getText());
+	        		//user = new Utilizador("davimfs7@gmail.com","password");
 	        		
 	        		//atualiza a lista de notas do utilizador
 	        		myList = UtilsSQLConn.getNotas(user);
@@ -1099,8 +1130,29 @@ public class Main extends Application {
 	        	}
 	        	
 	        });
+	        
+	        //Criar credenciais
+	        btnRegistar.setOnAction(registar ->{//clicar buttao
+	        	if(UtilsSQLConn.criarUtilizador(txtRegistarEmail.getText(), txtRegistarPass.getText()))//se puder criar a conta
+	        	{
+	        		Utils.alertBox("Conta criada");//avisa que a conta foi criada
+	        	}
+	        	else
+	        	{
+	        		Utils.alertBox("O email já está em uso!");//avisa que não criou a conta
+	        	}
+	        });
 			
+	        //adicionar funcionalidade de registar
+	        labelRegistar.setOnMouseClicked(clicar ->{
+	        	primaryStage.setScene(sceneRegistar);
+	        });
 			
+	        //adicionar funcionalidade de fazer login
+	        labelLogin.setOnMouseClicked(clicar ->{
+	        	primaryStage.setScene(sceneLogin);
+	        });
+	        
 			/*------------Fase da stage------------*/
 			
 			//É definido alguns parametros da stage principal
@@ -1134,7 +1186,7 @@ public class Main extends Application {
 		//passa pelas notas notas para guardar uma a uma
 		for(Nota fechar : myList)
 		{
-			//UtilsSQLConn.atualizarNota(fechar, user);TODO:ativar esta funcao
+			UtilsSQLConn.atualizarNota(fechar, user);
 		}
 		
 		super.stop();//fecha realmente o programa
