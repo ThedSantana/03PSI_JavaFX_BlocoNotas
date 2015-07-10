@@ -42,7 +42,7 @@ public class UtilsSQLConn {
 	static String SQLSERVER_DB_USER = "sa";								// BD user name SQLSERVER
 	static String SQLSERVER_DB_PASS = "123";							// BD password SQLSERVER
 	
-	static boolean msgON = true;										// Ativa Mensagens de controlo
+	static boolean msgON = false;										// Ativa Mensagens de controlo
 	
 	/* mySqlTeste()- Cria e testa uma ligação a um SGBD MYSQL.*/
 	public static void mySqlTeste(){
@@ -336,6 +336,10 @@ public class UtilsSQLConn {
 	/****************************************************************************
 	 * Métodos MySql para as notas, utilizadores e grupos
 	 ****************************************************************************/
+	
+	//=====================================================
+	//                 UTILIZADOR
+	//=====================================================
 	public static boolean verificarUtilizador(String email, String pass)
 	{
 		boolean autenticado = false; 	// variavel que indica se o email e a pass coicidem
@@ -456,6 +460,10 @@ public class UtilsSQLConn {
 		
 		return autenticado;
 	}
+	
+	//=====================================================
+	//                      NOTAS
+	//=====================================================
 	//recebe o id para a nota
 	//requer que a base de dados ja esteja aberta
 	public static long getCodNota()
@@ -486,10 +494,21 @@ public class UtilsSQLConn {
 	{
 		String dml = "";
 		long pos = 0;
+		String grupo = "NULL";
+		
+		try
+		{
+			//Utils.alertBox("" + novo._pertence.getNome());
+			grupo = "" + novo._pertence.getCodGrupo();
+		}
+		catch(Exception naoDefenido)
+		{
+			grupo = "NULL";
+		}
 		
 		dml = "INSERT INTO `nota`(`codNota`, `GrupocodGrupo`, `Utilizadoremail`, `Titulo`, `Cor`, `Autor`, `Data`, `CarimboApagado`, `Conteudo`) "
 				+ "VALUES (NULL," //CodNota, gera automaticamente
-				+ "NULL,"//grupo a que pertence (por implementar) TODO: implementar associacao com grupo
+				+ "" + grupo + ","//grupo a que pertence (por implementar) TODO: implementar associacao com grupo
 				+ "\"" + user.getEmail() + "\"," //email ou conta a que pertence
 				+ "\"" + novo.getTitulo() + "\","//titulo
 				+ "\"" + novo.getCor() + "\","	//cor
@@ -552,10 +571,21 @@ public class UtilsSQLConn {
 	{
 		boolean inserido = false;//variavel que retorna se a nota foi atualizada ou nao
 		
+		String grupo = "NULL";
+		
+		try
+		{
+			//Utils.alertBox("" + nota._pertence.getNome());
+			grupo = "" + nota._pertence.getCodGrupo();
+		}
+		catch(Exception naoDefenido)
+		{
+			grupo = "NULL";
+		}
 		//int myInt = (nota.getCarimboApagado()) ? 1 : 0;
 		//UPDATE `nota` SET `codNota`=NULL,`GrupocodGrupo`=NULL,`Utilizadoremail`="davimfs7@gmail.com",`Titulo`="Novo Titulo",`Cor`="#123456",`Autor`="Picasso",`Data`="2015",`CarimboApagado`= 0,`Conteudo`= "MLG GET REKT" WHERE codNota = 2
 		//variavel que contem o insert ou update da nota
-		String dml = "UPDATE `nota` SET `GrupocodGrupo`=NULL,"
+		String dml = "UPDATE `nota` SET `GrupocodGrupo`=" + grupo + ","
 				+ "`Titulo`= \"" + nota.getTitulo() + "\","
 				+ "`Cor`= \"" + nota.getCor() + "\","
 				+ "`CarimboApagado`= \"" + ((nota.getCarimboApagado()) ? 1 : 0) + "\","
@@ -590,6 +620,7 @@ public class UtilsSQLConn {
 					int dmlResult = stmt.executeUpdate(dml);		// Executa-o. Devolve o nº de registos tratados
 					if (dmlResult > 0 && msgON){					// Devolve inteiro > 0 se ok
 						Utils.alertBox("DB","Comando DML OK");		// 0 ou menor, se ERRO.
+						inserido = true;
 					}
 					else{
 						if(msgON){
@@ -609,8 +640,8 @@ public class UtilsSQLConn {
 		return inserido;//devolve se foi inserida ou nao a nota
 	}
 	
-	//Devolve as notas todas como listView
-	public static List<Nota> getNotas(Utilizador user)//recebe o utilizador para as suas respetivas notas
+	//Devolve as notas todas como list
+	public static List<Nota> getNotas(Utilizador user, List<Grupo> myListGrupos)//recebe o utilizador para as suas respetivas notas
 	{
 		List<Nota> myList = new ArrayList<>();//cria vazio por defeito, depois vai sendo adicionada
 		Nota notaQuery;//serve para receber todas as notas que pertencem ao utilizador
@@ -652,6 +683,13 @@ public class UtilsSQLConn {
 							notaQuery = new Nota(rs.getString(4),rs.getString(5));//cria a nota com o titulo e a cor
 							notaQuery.setCodNota(rs.getLong(1));//adiciona o codigo
 							//notaQuery._utilizador = user;//adiciona o user
+							for(Grupo grupo : myListGrupos)
+							{
+								if(rs.getInt(2) == grupo.getCodGrupo())
+								{
+									notaQuery._pertence = grupo;
+								}
+							}
 							notaQuery.setAutor(rs.getString(6));//adiciona 
 							notaQuery.setData(rs.getLong(7));//adiciona a data
 							notaQuery.setConteudo(rs.getString(9));//adiciona o conteudo
@@ -672,6 +710,34 @@ public class UtilsSQLConn {
 		
 		
 		return myList;//devolve a lista
+	}
+	
+	//=====================================================
+	//                       GRUPOS
+	//=====================================================
+	//recebe o id para o grupo
+	//requer que a base de dados ja esteja aberta
+	public static long getCodGrupo()
+	{
+		String dml = "SELECT `codGrupo` FROM `grupo` ORDER BY codGrupo DESC LIMIT 1;";//faz a query para obter o valor mais alto
+		long pos=0;//guarda o valor do CodNota
+		
+		try{
+
+			Statement stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery(dml);
+			while(rs.next()){ 	//procura por todos os emails iguais
+								//embora não possa haver emails repetidos é executa até encontrar uma combinação válida
+				pos = rs.getLong(1);
+			}
+			shutdownConnection();
+		}
+		catch(SQLException ex){							// Apanha Erro da connection ou DML
+			Utils.alertBox("Finally", "Erro na ligação da Query");
+			ex.printStackTrace();
+			shutdownConnection();
+		}		
+		return pos;
 	}
 	
 	//adiciona um grupo
@@ -722,7 +788,7 @@ public class UtilsSQLConn {
 						}
 					}
 				}
-				pos = getCodNota();
+				pos = getCodGrupo();
 				shutdownConnection();
 			}
 			catch(SQLException ex){							// Apanha Erro da connection ou DML
@@ -733,4 +799,145 @@ public class UtilsSQLConn {
 		}
 		return pos;
 	}
+	
+	//UPDATE `grupo` SET `codGrupo`=[value-1],`Cor`=[value-2],`Nome`=[value-3],`CarimboApagado`=[value-4] WHERE 1
+	public static boolean atualizarGrupo(Grupo grupo)//Atualiza o grupo
+	{
+		boolean inserido = false;//variavel que retorna se o grupo foi atualizado ou nao
+		
+		
+		String dml = "UPDATE `grupo` SET `Cor`="
+				+ "\"" + grupo.getCor() + "\","
+				+ " `Nome`= \"" + grupo.getNome() + "\","
+				+ "`CarimboApagado`= " + ((grupo.getCarimboApagado()) ? 1 : 0)
+				+ " WHERE codGrupo = " + grupo.getCodGrupo();
+		
+		System.out.println(dml);
+		
+		try{
+			//Tenta ligar-se ao SGBD e à base de dados
+			Class.forName(MYSQL_JDBC_DRIVER).newInstance();
+			conn = DriverManager.getConnection(MYSQL_DB_URL, MYSQL_DB_USER, MYSQL_DB_PASS );
+			if(msgON){
+				Utils.alertBox("layoutLeft", "Base dados aberta");
+			}
+		}
+		catch(SQLException ex){								// Apanha Erro da connection ou DML
+			Utils.alertBox("layoutLeft", "Erro na ligação");
+		}
+		catch(ClassNotFoundException ex){					// Apanha Erro da Class.forName()
+			Utils.alertBox("layoutLeft", "Erro no Driver");
+		}
+		catch(Exception ex){								// Apanha todas as restantes Exceções
+			Utils.alertBox("layoutLeft", "Erro genérico na ligação, na atualização");
+			ex.printStackTrace();
+		}
+		finally{
+			try{
+				// Se ligação com sucesso, executa a dml
+				if(!dml.isEmpty()){		// Se a dml tiver comando sql, executa-o
+					
+					Statement stmt = conn.createStatement();		// Cria um obj comando sql
+					int dmlResult = stmt.executeUpdate(dml);		// Executa-o. Devolve o nº de registos tratados
+					if (dmlResult > 0 && msgON){					// Devolve inteiro > 0 se ok
+						Utils.alertBox("DB","Comando DML OK");		// 0 ou menor, se ERRO.
+						inserido = true;
+					}
+					else{
+						if(msgON){
+							Utils.alertBox("DB","ERRO Comando DML");
+						}
+					}
+				}		
+				shutdownConnection();
+			}
+			catch(SQLException ex){							// Apanha Erro da connection ou DML
+				Utils.alertBox("Finally", "Erro na ligação");
+				ex.printStackTrace();
+				shutdownConnection();
+			}				
+		}
+		
+		return inserido;//devolve se foi inserida ou nao a nota
+	}
+	
+	//SELECT * FROM `grupo`, `nota` WHERE Utilizadoremail = "davimfs7@gmail.com" AND GrupocodGrupo = codGrupo
+	//Devolve os grupos todos como list
+	public static List<Grupo> getGrupos(Utilizador user)
+	{
+		List<Grupo> myList = new ArrayList<>();//cria vazio por defeito, depois vai sendo adicionada
+		Grupo grupoQuery;//serve para receber todos os grupos que pertencem ao utilizador
+		
+		boolean verificar = true; //serve para indicar num ciclo for each para dizer se pode criar ou nao o grupo devido as repeticoes nas consultas
+		
+		String query = "SELECT * FROM `grupo`, `nota` WHERE Utilizadoremail = \"" + user.getEmail() + "\" AND GrupocodGrupo = codGrupo";	//variavel que vai executar a query
+		//É adaptada com os valores recebidos
+
+		//query = query + "\"" + user.getEmail()  + "\""; //adiciona o email como indice de procura
+
+		try{
+			//Tenta ligar-se ao SGBD e à base de dados
+			Class.forName(MYSQL_JDBC_DRIVER).newInstance();
+			conn = DriverManager.getConnection(MYSQL_DB_URL, MYSQL_DB_USER, MYSQL_DB_PASS );
+			if(msgON){
+				Utils.alertBox("layoutLeft", "Base dados aberta");
+			}
+		}
+		catch(SQLException ex){							// Apanha Erro da connection ou DML
+			Utils.alertBox("layoutLeft", "Erro na ligação da BD");
+		}
+		catch(ClassNotFoundException ex){				// Apanha Erro da Class.forName()
+			Utils.alertBox("layoutLeft", "Erro no Driver");
+		}
+		catch(Exception ex){								// Apanha todas as restantes Exceções
+			Utils.alertBox("layoutLeft", "Erro genérico na ligação");
+			ex.printStackTrace();
+		}
+		finally{
+			try{
+				// Se ligação com sucesso, executa a query
+				if(!query.isEmpty()){		// Se a query tiver comando sql
+					
+					Statement stmt = conn.createStatement();
+					ResultSet rs = stmt.executeQuery(query);
+					while(rs.next()){ 	//procura por todos os emails iguais
+										//embora não possa haver emails repetidos é executa até encontrar uma combinação válida
+						if( (rs.getInt(4) == 0) && (rs.getInt(12) ==0) )//se o carimbo do grupo e da nota a que pertence tiver a 0 ou seja não estiver apagado
+						{
+
+							//verifica se não há nenhum grupo repetido
+							for(Grupo grupo : myList)
+							{
+								if(grupo.getCodGrupo() == rs.getInt(1)) //se ja houver um grupo com esse indice então é negada a sua criacao
+								{
+									verificar = false;
+								}
+							}
+							
+							if(verificar)
+							{
+								grupoQuery = new Grupo(rs.getString(3),rs.getString(2));//cria inicialmente
+								grupoQuery.setCodGrupo(rs.getInt(1));//introduz o indice
+								//grupoQuery.setCarimboApagado(rs.getInt(4));//introduz o carimbo
+								
+								//adiciona o grupo criado a lista
+								myList.add(grupoQuery);
+							}
+							
+							verificar = true; //limpa a variavel de novo
+						}
+					}
+				}		
+				shutdownConnection();
+			}
+			catch(SQLException ex){							// Apanha Erro da connection ou DML
+				Utils.alertBox("Finally", "Erro na ligação da query");
+				shutdownConnection();
+			}				
+		}
+		
+		
+		return myList;//devolve a lista
+	}
+	
 }

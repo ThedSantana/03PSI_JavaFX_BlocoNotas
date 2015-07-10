@@ -128,7 +128,7 @@ public class Main extends Application {
 	        	
 	        	//Label criar nota
 	        	Label txtCriaNota = new Label("Nova Nota");
-	        	txtCriaNota.setAlignment(Pos.CENTER); //alinha ao centro TODO: Ver porque não alinha
+	        	txtCriaNota.setAlignment(Pos.CENTER); //alinha ao centro 
 	        	
 	        	//Recebe o nome da nota
 	        	TextField txtNome = new TextField();
@@ -235,7 +235,7 @@ public class Main extends Application {
 	        		//notas.getItems().add(txtNome.getText());
 	        		//notas.getItems().add(new Nota(txtNome.getText()));
 	        		
-	        		//cria uma nota TODO: limitar tamanho da nota(e grupo)
+	        		//cria uma nota 
 	        		Nota criarNota = new Nota(txtNome.getText(),Utils.colorToString(cor.getValue()));
 	        		criarNota.setConteudo(temp); //mete o valor armazenado
 	        		criarNota.setGrupo(grupo.getValue());//recebe o grupo a que pertence
@@ -285,7 +285,7 @@ public class Main extends Application {
 	        	
 	        	//Label criar grupo
 	        	Label txtCriaGrupo = new Label("Novo Grupo");
-	        	txtCriaGrupo.setAlignment(Pos.CENTER); //alinha ao centro TODO: Ver porque não alinha
+	        	txtCriaGrupo.setAlignment(Pos.CENTER); //alinha ao centro 
 	        	
 	        	//Recebe o nome do grupo
 	        	TextField txtNome = new TextField();
@@ -315,6 +315,8 @@ public class Main extends Application {
 	        	criar.setOnAction(a->{	        		
 	        		//cria um grupo
 	        		Grupo criarGrupo = new Grupo(txtNome.getText(),Utils.colorToString(cor.getValue()));
+	        		
+	        		criarGrupo.setCodGrupo(UtilsSQLConn.adicionarGrupo(criarGrupo));//adiciona o grupo a bd e atribui localmente o codGrupo
 	        		
 	        		myListGrupos.add(criarGrupo);
 	        		myObservableListGrupos = FXCollections.observableList(myListGrupos);
@@ -384,7 +386,7 @@ public class Main extends Application {
 	        	{
 		        	//Label criar nota
 		        	Label txtEditarNota = new Label("Editar Nota");
-		        	txtEditarNota.setAlignment(Pos.CENTER); //alinha ao centro TODO: Ver porque não alinha
+		        	txtEditarNota.setAlignment(Pos.CENTER); //alinha ao centro 
 		        	
 		        	//Recebe o nome da nota
 		        	TextField txtNome = new TextField();
@@ -441,7 +443,7 @@ public class Main extends Application {
 		        		}*/
 		        		
 		        		UtilsSQLConn.atualizarNota(alterar, user);
-		        		myList = UtilsSQLConn.getNotas(user);
+		        		myList = UtilsSQLConn.getNotas(user, myListGrupos);
 		        		
 		        		myObservableList = FXCollections.observableList(myList);//atualiza a observable list
 		        		notas.setItems(null); //Serve para enganar o sistema, porque as notas so dao refresh quando é adicionado ou removido
@@ -509,7 +511,7 @@ public class Main extends Application {
 	        	{
 		        	//Label criar nota
 		        	Label txtEditarGrupo = new Label("Editar Grupo");
-		        	txtEditarGrupo.setAlignment(Pos.CENTER); //alinha ao centro TODO: Ver porque não alinha
+		        	txtEditarGrupo.setAlignment(Pos.CENTER); //alinha ao centro 
 		        	
 		        	//Recebe o nome da nota
 		        	TextField txtNome = new TextField();
@@ -542,6 +544,9 @@ public class Main extends Application {
 		        		//Mudar conteudo
 		        		alterarG.setNome(txtNome.getText());//altera o nome
 		        		alterarG.setCor(Utils.colorToString(cor.getValue()));//altera a cor
+		        		
+		        		UtilsSQLConn.atualizarGrupo(alterarG);//atualiza o grupo na bd
+		        		myListGrupos = UtilsSQLConn.getGrupos(user);
 		        		
 		        		try
 		        		{
@@ -652,7 +657,7 @@ public class Main extends Application {
 		        		
 		        		//myList.remove(selecionadoIndex);//remove da lista
 		        		UtilsSQLConn.atualizarNota(eliminar, user);
-		        		myList = UtilsSQLConn.getNotas(user);
+		        		myList = UtilsSQLConn.getNotas(user, myListGrupos);
 		        		
 		        		iniciado = false; //diz que nao pode atualizar a ultima nota, visto que foi apagada
 		        		
@@ -712,7 +717,11 @@ public class Main extends Application {
 		        		//Carimba como apagado
 		        		eliminar.apagarGrupo();
 		        		
-		        		myListGrupos.remove(selecionadoIndexG);//remove da lista
+		        		//myList.remove(selecionadoIndex);//remove da lista
+		        		UtilsSQLConn.atualizarGrupo(eliminar);
+		        		myListGrupos = UtilsSQLConn.getGrupos(user);
+		        		
+		        		//myListGrupos.remove(selecionadoIndexG);//remove da lista
 		        		
 		        		//Atualiza a lista
 		        		myObservableListGrupos = FXCollections.observableList(myListGrupos);//atualiza a observable list
@@ -958,6 +967,9 @@ public class Main extends Application {
 	        //Evento de selecionar elemento
 	        grupos.getSelectionModel().selectedItemProperty().addListener(e->{
 	        	
+	        	//Atualiza os grupos
+	        	UtilsSQLConn.atualizarGrupo(myListGrupos.get(grupos.getSelectionModel().getSelectedIndex()));
+	        	
 	        	//Cria uma copia do layoutRoot para o criar
 	        	BorderPane layoutRootNota = new BorderPane();
 	        	//Mete o menu bar(comum para todos)
@@ -1114,8 +1126,16 @@ public class Main extends Application {
 	        		user = new Utilizador(txtEmail.getText(),txtPass.getText());
 	        		//user = new Utilizador("davimfs7@gmail.com","password");
 	        		
+	        			    	        
+	        		//atualiza a lista de grupos do utilizador
+	        		myListGrupos = UtilsSQLConn.getGrupos(user);
+        			myObservableListGrupos = FXCollections.observableList(myListGrupos);
+        			//grupos
+	    	        grupos.setItems(myObservableListGrupos);
+	    	        
+	    	        
 	        		//atualiza a lista de notas do utilizador
-	        		myList = UtilsSQLConn.getNotas(user);
+	        		myList = UtilsSQLConn.getNotas(user, myListGrupos);
         			myObservableList = FXCollections.observableList(myList);
         			//notas.
 	    	        notas.setItems(myObservableList);
@@ -1183,12 +1203,18 @@ public class Main extends Application {
 	public void stop() throws Exception {
 		//Utils.alertBox("teste parar");
 		
-		//passa pelas notas notas para guardar uma a uma
+		//passa pelas notas para guardar uma a uma
 		for(Nota fechar : myList)
 		{
 			UtilsSQLConn.atualizarNota(fechar, user);
 		}
 		
+		//passa pelos grupos para guardar um a um
+		for(Grupo fechar : myListGrupos)
+		{
+			UtilsSQLConn.atualizarGrupo(fechar);
+		}
+				
 		super.stop();//fecha realmente o programa
 	}
 	
