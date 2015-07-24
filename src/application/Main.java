@@ -6,9 +6,14 @@ package application;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+
 import org.fxmisc.richtext.StyleClassedTextArea;
 
 import javafx.application.Application;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
@@ -25,6 +30,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
@@ -72,6 +78,9 @@ As propriedades são:
 
 public class Main extends Application {
 
+	//constantes
+	int MAXSIZETEXTFIELD = 32; //tamanho maximo da string
+	
 	//utilizador
 	Utilizador user;
 	
@@ -136,6 +145,20 @@ public class Main extends Application {
 	        	txtNome.positionCaret(0);	  //Coloca a posição da seleção a partir do ponto 0 (antes da primeira letra)
 	        	txtNome.selectAll();		  //Seleciona tudo a partir da posicao 0 ate ao fim
 	        	
+	        	//adiciona um limite de caracteres e proibe a entrada de outros caracteres
+	        	txtNome.textProperty().addListener(new ChangeListener<String>() {
+		            @Override
+		            public void changed(final ObservableValue<? extends String> ov, final String oldValue, final String newValue) {
+
+		            	if ( newValue.length() > MAXSIZETEXTFIELD ) 
+		            	{
+		                    String s = newValue.substring(0, MAXSIZETEXTFIELD);
+		                    txtNome.setText(s);
+		                }
+
+		            }
+		        });
+		        
 	        	//Cria um caixa de introdução de cor
 	        	ColorPicker cor = new ColorPicker();
 	        	
@@ -293,6 +316,20 @@ public class Main extends Application {
 	        	txtNome.positionCaret(0);	  //Coloca a posição da seleção a partir do ponto 0 (antes da primeira letra)
 	        	txtNome.selectAll();		  //Seleciona tudo a partir da posicao 0 ate ao fim
 	        	
+	        	//adiciona um limite de caracteres e proibe a entrada de outros caracteres
+	        	txtNome.textProperty().addListener(new ChangeListener<String>() {
+		            @Override
+		            public void changed(final ObservableValue<? extends String> ov, final String oldValue, final String newValue) {
+
+		            	if ( newValue.length() > MAXSIZETEXTFIELD ) 
+		            	{
+		                    String s = newValue.substring(0, MAXSIZETEXTFIELD);
+		                    txtNome.setText(s);
+		                }
+
+		            }
+		        });
+	        	
 	        	//Cria um caixa de introdução de cor
 	        	ColorPicker cor = new ColorPicker();
 	        	
@@ -393,6 +430,20 @@ public class Main extends Application {
 		        	txtNome.setText(alterar.getTitulo()); //Mete valor por defeito
 		        	txtNome.positionCaret(0);	  //Coloca a posição da seleção a partir do ponto 0 (antes da primeira letra)
 		        	txtNome.selectAll();		  //Seleciona tudo a partir da posicao 0 ate ao fim
+		        	
+		        	//adiciona um limite de caracteres e proibe a entrada de outros caracteres
+		        	txtNome.textProperty().addListener(new ChangeListener<String>() {
+			            @Override
+			            public void changed(final ObservableValue<? extends String> ov, final String oldValue, final String newValue) {
+
+			            	if ( newValue.length() > MAXSIZETEXTFIELD ) 
+			            	{
+			                    String s = newValue.substring(0, MAXSIZETEXTFIELD);
+			                    txtNome.setText(s);
+			                }
+
+			            }
+			        });
 		        	
 		        	//Cria um caixa de introdução de cor
 		        	ColorPicker cor = new ColorPicker();
@@ -519,6 +570,20 @@ public class Main extends Application {
 		        	txtNome.positionCaret(0);	  //Coloca a posição da seleção a partir do ponto 0 (antes da primeira letra)
 		        	txtNome.selectAll();		  //Seleciona tudo a partir da posicao 0 ate ao fim
 		        	
+		        	//adiciona um limite de caracteres e proibe a entrada de outros caracteres
+		        	txtNome.textProperty().addListener(new ChangeListener<String>() {
+			            @Override
+			            public void changed(final ObservableValue<? extends String> ov, final String oldValue, final String newValue) {
+
+			            	if ( newValue.length() > MAXSIZETEXTFIELD ) 
+			            	{
+			                    String s = newValue.substring(0, MAXSIZETEXTFIELD);
+			                    txtNome.setText(s);
+			                }
+
+			            }
+			        });
+		        	
 		        	//Cria um caixa de introdução de cor
 		        	ColorPicker cor = new ColorPicker();
 		        	cor.setValue(Utils.StringToColor(alterarG.getCor()));
@@ -550,7 +615,7 @@ public class Main extends Application {
 		        		
 		        		try
 		        		{
-		        			myListGrupos.set(selecionadoIndexG, alterarG);// muda na lista o obj
+		        			myListGrupos.set(grupos.getSelectionModel().getSelectedIndex(), alterarG);// muda na lista o obj
 		        		}
 		        		catch(java.lang.ArrayIndexOutOfBoundsException naoSelecionado)
 		        		{
@@ -1042,12 +1107,15 @@ public class Main extends Application {
 	        HBox layoutPass = new HBox();	//Vai ter a label e a textField para a password
 	        Label labelRegistar = new Label("Não tem conta? Clique aqui para registar!");	//Apresenta a opcao de registar
 	        Button btnLogin = new Button("Login"); 	//Serve para fazer o login após preenchido os dados
+	        btnLogin.setDefaultButton(true);
 	        
 	        Label labelEmail = new Label("Email: ");	//Aspeto grafico que indica para introduzir o email
 	        TextField txtEmail = new TextField();	//Recebe os dados introduzidos do email
+	        txtEmail.setPromptText("email@exemplo.com");
 	        
 	        Label labelPass = new Label("Pass:  ");	//Aspeto grafico que indica para introduzir a pass
-	        TextField txtPass = new TextField();	//Recebe os dados introduzidos do email
+	        PasswordField txtPass = new PasswordField();	//Recebe os dados introduzidos do email
+	        txtPass.setPromptText("password");
 	        
 	        layoutEmail.setAlignment(Pos.CENTER); //Alinha ao meio a layout do email
 	        layoutPass.setAlignment(Pos.CENTER);  //Alinha ao meio a layout da pass
@@ -1062,6 +1130,26 @@ public class Main extends Application {
 	        
 	        layoutLogin.setCenter(layoutForm);
 	        
+	        //adiciona um limite de caracteres e proibe a entrada de outros caracteres
+	        txtEmail.textProperty().addListener(new ChangeListener<String>() {
+	            @Override
+	            public void changed(final ObservableValue<? extends String> ov, final String oldValue, final String newValue) {
+	            	//if( (newValue.matches("^[a-zA-Z0-9]*$")))
+	            	//{
+		            	if ( newValue.length() > MAXSIZETEXTFIELD ) 
+		            	{
+		                    String s = newValue.substring(0, MAXSIZETEXTFIELD);
+		                    txtEmail.setText(s);
+		                }
+	            	/*}
+	            	else
+	            	{
+	            		txtEmail.setText(oldValue);
+	            	}*/
+	            }
+	        });
+	        
+	        
 	        //---------Registar---------
 	        
 	        BorderPane layoutRegistar = new BorderPane();//layout do registar
@@ -1072,12 +1160,15 @@ public class Main extends Application {
 	        HBox layoutIntroduzirPass = new HBox();	//Vai ter a label e a textField para a password
 	        Label labelLogin = new Label("Já tem conta? Clique aqui para fazer o login!");	//Apresenta a opcao de registar
 	        Button btnRegistar = new Button("Registar"); 	//Serve para fazer o login após preenchido os dados
+	        btnRegistar.setDefaultButton(true);
 	        
 	        Label labelRegistarEmail = new Label("Email: ");	//Aspeto grafico que indica para introduzir o email
 	        TextField txtRegistarEmail = new TextField();	//Recebe os dados introduzidos do email
+	        txtRegistarEmail.setPromptText("email@exemplo.com");
 	        
 	        Label labelRegistarPass = new Label("Pass:  ");	//Aspeto grafico que indica para introduzir a pass
-	        TextField txtRegistarPass = new TextField();	//Recebe os dados introduzidos do email
+	        PasswordField txtRegistarPass = new PasswordField();	//Recebe os dados introduzidos do email
+	        txtRegistarPass.setPromptText("password");
 	        
 	        layoutIntroduzirEmail.setAlignment(Pos.CENTER); //Alinha ao meio a layout do email
 	        layoutIntroduzirPass.setAlignment(Pos.CENTER);  //Alinha ao meio a layout da pass
@@ -1091,6 +1182,34 @@ public class Main extends Application {
 	        layoutFormR.getChildren().addAll(layoutIntroduzirEmail,layoutIntroduzirPass,btnRegistar, labelLogin);
 	        
 	        layoutRegistar.setCenter(layoutFormR);
+	        
+	        //adiciona um limite de caracteres e proibe a entrada de outros caracteres
+	        txtRegistarEmail.textProperty().addListener(new ChangeListener<String>() {
+	            @Override
+	            public void changed(final ObservableValue<? extends String> ov, final String oldValue, final String newValue) {
+
+	            	if ( newValue.length() > MAXSIZETEXTFIELD ) 
+	            	{
+	                    String s = newValue.substring(0, MAXSIZETEXTFIELD);
+	                    txtRegistarEmail.setText(s);
+	                }
+
+	            }
+	        });
+	        
+	        //adiciona um limite de caracteres e proibe a entrada de outros caracteres
+	        txtRegistarPass.textProperty().addListener(new ChangeListener<String>() {
+	            @Override
+	            public void changed(final ObservableValue<? extends String> ov, final String oldValue, final String newValue) {
+
+	            	if ( newValue.length() > MAXSIZETEXTFIELD ) 
+	            	{
+	                    String s = newValue.substring(0, MAXSIZETEXTFIELD);
+	                    txtRegistarPass.setText(s);
+	                }
+
+	            }
+	        });
 	        
 			/*------------Fase da layout principal------------*/
 			
@@ -1119,47 +1238,71 @@ public class Main extends Application {
 			//Quando o utilizador fazer o login
 	        btnLogin.setOnAction(fazerLogin ->{ //clicar buttao
 	        	
-	        	//if(UtilsSQLConn.verificarUtilizador("davimfs7@gmail.com", "password"))//verifica as credenciais
-	        	if(UtilsSQLConn.verificarUtilizador(txtEmail.getText(), txtPass.getText()))//verifica as credenciais
+	        	//https://en.wikipedia.org/wiki/Email_address#Local_part
+	        	if( isValidEmailAddress(txtEmail.getText()) )
 	        	{
-	        		//Se for aceite é criado o utilizador
-	        		user = new Utilizador(txtEmail.getText(),txtPass.getText());
-	        		//user = new Utilizador("davimfs7@gmail.com","password");
 	        		
-	        			    	        
-	        		//atualiza a lista de grupos do utilizador
-	        		myListGrupos = UtilsSQLConn.getGrupos(user);
-        			myObservableListGrupos = FXCollections.observableList(myListGrupos);
-        			//grupos
-	    	        grupos.setItems(myObservableListGrupos);
-	    	        
-	    	        
-	        		//atualiza a lista de notas do utilizador
-	        		myList = UtilsSQLConn.getNotas(user, myListGrupos);
-        			myObservableList = FXCollections.observableList(myList);
-        			//notas.
-	    	        notas.setItems(myObservableList);
-
-	    	        
-	        		//e abre o ambiente de trabalho
-		        	primaryStage.setScene(scenePrincipal);
+		        	//if(UtilsSQLConn.verificarUtilizador("davimfs7@gmail.com", "password"))//verifica as credenciais
+		        	if(UtilsSQLConn.verificarUtilizador(txtEmail.getText(), txtPass.getText()))//verifica as credenciais
+		        	{
+		        		//Se for aceite é criado o utilizador
+		        		user = new Utilizador(txtEmail.getText(),txtPass.getText());
+		        		//user = new Utilizador("davimfs7@gmail.com","password");
+		        		
+		        			    	        
+		        		//atualiza a lista de grupos do utilizador
+		        		myListGrupos = UtilsSQLConn.getGrupos(user);
+	        			myObservableListGrupos = FXCollections.observableList(myListGrupos);
+	        			//grupos
+		    	        grupos.setItems(myObservableListGrupos);
+		    	        
+		    	        
+		        		//atualiza a lista de notas do utilizador
+		        		myList = UtilsSQLConn.getNotas(user, myListGrupos);
+	        			myObservableList = FXCollections.observableList(myList);
+	        			//notas.
+		    	        notas.setItems(myObservableList);
+	
+		    	        
+		        		//e abre o ambiente de trabalho
+			        	primaryStage.setScene(scenePrincipal);
+		        	}
+		        	else//se não conseguir efetuar o login
+		        	{
+		        		Utils.alertBox("Combinação email e/ou password inválida!");//manda mensagem de erro
+		        	}
 	        	}
-	        	else//se não conseguir efetuar o login
+	        	else
 	        	{
-	        		Utils.alertBox("Combinação email e/ou password inválida!");//manda mensagem de erro
+	        		Utils.alertBox("Email inválido!");
 	        	}
-	        	
 	        });
 	        
 	        //Criar credenciais
 	        btnRegistar.setOnAction(registar ->{//clicar buttao
-	        	if(UtilsSQLConn.criarUtilizador(txtRegistarEmail.getText(), txtRegistarPass.getText()))//se puder criar a conta
+	        	
+	        	//https://en.wikipedia.org/wiki/Email_address#Local_part
+	        	if( isValidEmailAddress(txtRegistarEmail.getText()) )
 	        	{
-	        		Utils.alertBox("Conta criada");//avisa que a conta foi criada
+	        		if(txtRegistarPass.getText().length() > 7)
+	        		{
+			        	if(UtilsSQLConn.criarUtilizador(txtRegistarEmail.getText(), txtRegistarPass.getText()))//se puder criar a conta
+			        	{
+			        		Utils.alertBox("Conta criada");//avisa que a conta foi criada
+			        	}
+			        	else
+			        	{
+			        		Utils.alertBox("O email já está em uso!");//avisa que não criou a conta
+			        	}
+	        		}
+	        		else
+	        		{
+	        			Utils.alertBox("Use pelo menos 8 caracteres!");
+	        		}
 	        	}
 	        	else
 	        	{
-	        		Utils.alertBox("O email já está em uso!");//avisa que não criou a conta
+	        		Utils.alertBox("Email inválido!");
 	        	}
 	        });
 			
@@ -1218,5 +1361,18 @@ public class Main extends Application {
 		super.stop();//fecha realmente o programa
 	}
 	
+	public static boolean isValidEmailAddress(String email) {
+	   boolean result = true;
+	   try {
+	      InternetAddress emailAddr = new InternetAddress(email);
+	      emailAddr.validate();
+	      //Utils.alertBox("certo");
+	   } catch (AddressException ex) {
+	      result = false;
+	      //Utils.alertBox("falha");
+	   }
+	   //Utils.alertBox("fim");
+	   return result;
+	}
 	
 }//Fim class main

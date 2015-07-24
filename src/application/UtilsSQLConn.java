@@ -539,7 +539,7 @@ public class UtilsSQLConn {
 		finally{
 			try{
 				// Se ligação com sucesso, executa a dml
-				Utils.alertBox(dml);
+				//Utils.alertBox(dml);
 				if(!dml.isEmpty()){		// Se a dml tiver comando sql, executa-o
 					
 					Statement stmt = conn.createStatement();		// Cria um obj comando sql
@@ -774,7 +774,7 @@ public class UtilsSQLConn {
 		finally{
 			try{
 				// Se ligação com sucesso, executa a dml
-				Utils.alertBox(dml);
+				//Utils.alertBox(dml);
 				if(!dml.isEmpty()){		// Se a dml tiver comando sql, executa-o
 					
 					Statement stmt = conn.createStatement();		// Cria um obj comando sql

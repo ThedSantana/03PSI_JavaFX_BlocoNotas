@@ -20,11 +20,4 @@
 		<nature>org.eclipse.xtext.ui.shared.xtextNature</nature>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>src/richtextfx-demos-fat-0.6.4.jar</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/Desktop/richtextfx-demos-fat-0.6.4.jar</locationURI>
-		</link>
-	</linkedResources>
 </projectDescription>
